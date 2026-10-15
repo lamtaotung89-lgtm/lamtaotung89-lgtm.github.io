@@ -1,0 +1,1049 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><title>Biến phí &amp; định phí</title>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="stylesheet" href="lb-shell.css"></head><body><header id="lbbar"><div class="lb-in">
+<a class="lb-home" href="index.html" title="Danh sách báo cáo"><svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 5 L17.5 14 L14 23 L10.5 14 Z" fill="#d62828"/><circle cx="14" cy="14" r="2" fill="#0b1d3a"/></svg>La bàn</a>
+<div class="lb-pick"><label for="lbsel">Báo cáo</label><select id="lbsel" aria-label="Chọn báo cáo"><optgroup label="Bộ báo cáo quản trị"><option value="kpi.html">KPI 1 trang</option><option value="ebitda.html">Tổng quan EBITDA</option><option value="doanh-thu.html">Doanh thu &amp; Lợi nhuận gộp</option><option value="bien-dinh-phi.html" selected>Biến phí &amp; định phí</option><option value="tien.html">Tiền &amp; công nợ</option><option value="du-bao.html">Dự báo cả năm &amp; hành động</option></optgroup><optgroup label="La bàn Lợi nhuận"><option value="la-ban-v2.html">La bàn Lợi nhuận · Công ty mẫu v2</option><option value="la-ban-c.html">La bàn Lợi nhuận · Công ty mẫu C</option></optgroup><optgroup label="Báo cáo điều hành"><option value="executive-summary.html">Executive summary</option></optgroup></select></div>
+<div class="lb-act"><button type="button" class="lb-btn" id="lbedit" aria-pressed="false" title="Đổi tên tiêu đề, cột, nhãn theo cách gọi của bạn"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14h3l8-8-3-3-8 8z M9.5 3.5l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Đổi tên đầu mục <span class="lb-n" id="lbcount"></span></button></div>
+</div></header>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>/* Layout: một cột báo cáo; Biến phí/tấn (3 nhóm nhỏ cạnh nhau) → điện năng → carton → định phí → bản đồ biến động → chi tiết từng nhóm.
+   Màu theo yêu cầu: đỏ, đen, trắng, xanh đậm. Đỏ = chi phí tăng/xấu, xanh đậm = giảm/tốt, đen = tổng. */
+:root {
+  --paper: #ffffff; --panel: #f5f6f8; --ink: #0f141b; --muted: #5b6574; --faint: #8a93a1; --line: #e2e5ea; --line-2: #c9ced6;
+  --navy: #0b2a52; --navy-soft: #dfe6f0; --red: #c8102e; --red-soft: #f9e1e5; --steel: #8b9bb4; --pale: #c4cbd6;
+  --sel: rgba(11, 42, 82, .07);
+  --f-body: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif; --f-num: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0b0f15; --panel: #131923; --ink: #eef1f5; --muted: #a2abb8; --faint: #6f7987; --line: #222a36; --line-2: #343e4c;
+  --navy: #6f9ae0; --navy-soft: #1a2a44; --red: #f0505f; --red-soft: #3a1a20; --steel: #a7b5cb; --pale: #4a5466; --sel: rgba(111, 154, 224, .10); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0b0f15; --panel: #131923; --ink: #eef1f5; --muted: #a2abb8; --faint: #6f7987; --line: #222a36; --line-2: #343e4c;
+  --navy: #6f9ae0; --navy-soft: #1a2a44; --red: #f0505f; --red-soft: #3a1a20; --steel: #a7b5cb; --pale: #4a5466; --sel: rgba(111, 154, 224, .10); color-scheme: dark }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+.num, .tnum { font-family: var(--f-num); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+
+/* đầu trang */
+.mast { border-bottom: 3px solid var(--ink); padding-block: 20px 14px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; }
+.brand { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.brand .eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--red); font-weight: 700; }
+.brand h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.brand .sub { color: var(--muted); font-size: 13px; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 6px 10px; font-size: 13px; cursor: pointer; color: var(--muted); white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); font-weight: 600; }
+select { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--paper); color: var(--ink); max-width: 100%; }
+.pill { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+.pill i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; background: var(--navy); }
+.pill i.fc { opacity: .3; }
+
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line); display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; scrollbar-width: none; }
+.nav a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 4px; white-space: nowrap; }
+.nav a:hover { background: var(--panel); color: var(--ink); }
+.nav a b { color: var(--red); font-family: var(--f-num); margin-right: 4px; }
+
+.headline { font-size: 19px; line-height: 1.45; font-weight: 500; margin: 22px 0 16px; max-width: 72ch; }
+.headline b { font-weight: 700; }
+.up { color: var(--navy); } .down { color: var(--red); }
+
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.kpi { padding: 14px 16px 14px 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi + .kpi { padding-left: 16px; border-left: 1px solid var(--line); }
+.kpi .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.kpi .val { font-size: 26px; font-weight: 700; font-family: var(--f-num); letter-spacing: -.03em; }
+.kpi .d { font-size: 13px; font-family: var(--f-num); }
+.kpi .d span { color: var(--muted); font-family: var(--f-body); }
+
+/* chương */
+section.ch { padding-top: 40px; scroll-margin-top: 52px; }
+.ch-head { display: flex; gap: 14px; align-items: baseline; border-bottom: 1px solid var(--ink); padding-bottom: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.ch-head .no { font-family: var(--f-num); color: var(--red); font-weight: 700; font-size: 20px; }
+.ch-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+.ch-head .q { color: var(--muted); font-size: 13px; flex-basis: 100%; }
+.lede { margin: 10px 0 14px; max-width: 80ch; color: var(--ink); }
+.block { margin-top: 18px; }
+.block-h { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.block-h h3 { font-size: 15px; font-weight: 700; }
+.block-h .note { font-size: 12px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend i.ln { height: 2px; width: 16px; border-radius: 0; }
+.legend i.dot { height: 0; width: 16px; border-top: 2px dashed; background: none !important; }
+.chart { width: 100%; position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { fill: var(--muted); font-family: var(--f-body); font-size: 11px; }
+svg .ax { stroke: var(--line); }
+svg .ax0 { stroke: var(--line-2); }
+svg .hit { fill: transparent; cursor: pointer; }
+svg .hit:hover { fill: var(--sel); }
+
+/* thẻ nhóm sản phẩm */
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.tile { text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 6px; padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-width: 0; position: relative; }
+.tile:hover { border-color: var(--line-2); }
+.tile[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.tile .t-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tile .t-h b { font-size: 15px; display: inline-flex; gap: 8px; align-items: center; }
+.tile .t-h i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.tile .t-h small { color: var(--faint); font-size: 11px; }
+.tile .big { font-family: var(--f-num); font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+.tile .row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.tile .row .num { color: var(--ink); }
+
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; margin-top: 18px; }
+.panel-h { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; align-items: baseline; margin-bottom: 6px; }
+.panel-h h3 { font-size: 15px; font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12px; border: 1px solid var(--line-2); border-radius: 999px; padding: 2px 10px; background: var(--paper); cursor: pointer; }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chip.x::after { content: " ×"; }
+
+/* cầu nằm ngang */
+.wf-row { display: grid; grid-template-columns: minmax(96px, 34%) minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+.wf-row.total { border-bottom: 1px solid var(--line-2); font-weight: 700; }
+.wf-row button.lab { all: unset; cursor: pointer; font-size: 13px; }
+.wf-row .lab { font-size: 13px; overflow-wrap: anywhere; }
+.wf-row.click { cursor: pointer; }
+.wf-row.click:hover { background: var(--sel); }
+.wf-row.on { background: var(--sel); }
+.wf-row .track { position: relative; height: 18px; }
+.wf-row .bar { position: absolute; top: 2px; height: 14px; border-radius: 2px; }
+.wf-row .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--line-2); }
+.wf-row .v { font-family: var(--f-num); font-size: 13px; text-align: right; min-width: 74px; }
+.wf-foot { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* danh sách khách */
+.cl-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 12px; padding: 7px 6px; border-bottom: 1px solid var(--line); cursor: pointer; align-items: center; border-radius: 4px; }
+.cl-row:hover { background: var(--sel); }
+.cl-row.on { background: var(--sel); box-shadow: inset 3px 0 0 var(--ink); }
+.cl-row .nm { font-size: 13px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cl-row .meta { font-size: 11px; color: var(--muted); grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cl-row .v { font-family: var(--f-num); font-size: 13px; text-align: right; }
+.cl-row .dv { font-family: var(--f-num); font-size: 12px; text-align: right; min-width: 70px; }
+.cl-row .barline { grid-column: 1 / -1; height: 6px; background: var(--panel); border-radius: 3px; position: relative; overflow: hidden; }
+.cl-row .barline span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.cl-row .barline em { position: absolute; top: -1px; bottom: -1px; width: 2px; background: var(--ink); }
+.cl-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* bảng */
+.tbl-wrap { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th { text-align: right; font-weight: 600; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 6px 8px; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+table.t th:first-child, table.t td:first-child { text-align: left; }
+table.t td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--line); font-family: var(--f-num); white-space: nowrap; }
+table.t td:first-child { font-family: var(--f-body); white-space: normal; min-width: 140px; }
+table.t td.txt { font-family: var(--f-body); text-align: left; white-space: normal; color: var(--muted); font-size: 12px; min-width: 180px; }
+table.t tr.click { cursor: pointer; }
+table.t tr.click:hover td { background: var(--sel); }
+table.t tr.on td { background: var(--sel); }
+table.t tr.on td:first-child { box-shadow: inset 3px 0 0 var(--ink); }
+table.t tr.sum td { font-weight: 700; border-top: 1px solid var(--line-2); }
+table.t .fc { color: var(--faint); }
+.flag { display: inline-block; font-size: 10px; font-family: var(--f-body); font-weight: 700; letter-spacing: .04em; padding: 1px 6px; border-radius: 3px; background: var(--red-soft); color: var(--red); margin-left: 6px; vertical-align: 1px; }
+.flag.ok { background: var(--navy-soft); color: var(--navy); }
+
+.drill { margin-top: 18px; border-top: 3px solid var(--ink); padding-top: 12px; }
+.drill-h { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; }
+.drill-h h3 { font-size: 17px; font-weight: 800; }
+.callout { margin-top: 10px; font-size: 13px; padding: 10px 12px; background: var(--panel); border-left: 3px solid var(--red); max-width: 90ch; }
+.callout.ok { border-left-color: var(--navy); }
+
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 12px; padding: 8px 10px; border-radius: 4px; max-width: 260px; box-shadow: 0 4px 16px rgba(0,0,0,.18); line-height: 1.45; }
+.tip b { font-weight: 700; }
+.tip .r { display: flex; justify-content: space-between; gap: 14px; }
+.tip .r span:last-child { font-family: var(--f-num); }
+
+footer.method { margin-top: 48px; border-top: 3px solid var(--ink); padding-top: 14px; font-size: 12px; color: var(--muted); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+footer.method h4 { margin: 0 0 4px; font-size: 12px; color: var(--ink); text-transform: uppercase; letter-spacing: .06em; }
+footer.method p { margin: 0 0 6px; }
+
+@media (max-width: 860px) {
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi:nth-child(3) { padding-left: 0; border-left: 0; }
+  .kpi:nth-child(n+3) { border-top: 1px solid var(--line); }
+  footer.method { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .tiles { grid-template-columns: minmax(0, 1fr); }
+  .brand h1 { font-size: 23px; }
+  .headline { font-size: 16px; }
+  .kpi .val { font-size: 21px; }
+  .wf-row { grid-template-columns: minmax(84px, 38%) minmax(0, 1fr) auto; gap: 6px; }
+  .wf-row .v { min-width: 60px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) { .wf-row .bar, .cl-row .barline span { transition: left .25s, width .25s; } }
+
+/* ===== bổ sung cho trang Biến phí và định phí ===== */
+.ctrl .lbl-s { font-size: 12px; color: var(--muted); }
+.per { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.per .vs { font-size: 12px; color: var(--muted); font-weight: 600; }
+.pill i.base { background: var(--steel); opacity: .45; }
+.multi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.multi > div { min-width: 0; }
+.mini-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 4px; }
+.mini-h b { font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
+.mini-h b i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.mini-h .num { font-size: 15px; font-weight: 700; }
+.mini-h .d { font-size: 12px; font-family: var(--f-num); }
+.mini-f { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 2px; }
+.mini-f .num { color: var(--ink); }
+.subsec { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--line-2); scroll-margin-top: 52px; }
+.subsec > h3 { font-size: 17px; font-weight: 800; }
+.subsec > .q { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+table.t td.neg, table.t td.up { color: var(--navy); }
+table.t td.down { color: var(--red); }
+table.t th.grp { text-align: center; border-bottom: 1px solid var(--line-2); }
+table.t td.sep, table.t th.sep { border-left: 1px solid var(--line); }
+/* bản đồ biến động */
+.heat { border-collapse: separate; border-spacing: 2px; font-size: 11px; }
+.heat th { font-weight: 600; color: var(--muted); font-size: 10px; padding: 2px 0; text-align: center; min-width: 26px; }
+.heat th.y { text-align: left; color: var(--ink); font-size: 11px; }
+.heat td { height: 22px; min-width: 26px; border-radius: 2px; background: var(--panel); cursor: pointer; }
+.heat td.nm { background: none; cursor: pointer; white-space: nowrap; padding-right: 10px; font-size: 12px; color: var(--ink); text-align: left; max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
+.heat td.nm small { color: var(--faint); margin-left: 4px; }
+.heat tr.cat td { background: none; cursor: default; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-top: 8px; }
+.heat td.fcm { opacity: .45; }
+.heat tr:hover td.nm { text-decoration: underline; }
+.heat td:focus-visible { outline: 2px solid var(--ink); }
+.scale { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.scale i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
+.catpick { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+.catpick button { border: 1px solid var(--line-2); background: var(--paper); border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.catpick button i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.catpick button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.nextbox { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 12px; }
+.nextbox > div { padding: 10px 12px 10px 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nextbox > div + div { padding-left: 12px; border-left: 1px solid var(--line); }
+.nextbox .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.nextbox .val { font-size: 19px; font-weight: 700; font-family: var(--f-num); letter-spacing: -.02em; }
+.nextbox .d { font-size: 12px; font-family: var(--f-num); }
+.assume { font-size: 12px; color: var(--muted); margin-top: 6px; max-width: 90ch; }
+.assume b { color: var(--ink); font-weight: 600; }
+@media (max-width: 860px) {
+  .multi { grid-template-columns: minmax(0, 1fr); }
+  .nextbox { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nextbox > div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .nextbox > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+.heat th.sel { background: var(--ink); color: var(--paper); border-radius: 2px; }
+.pill i.box { width: 12px; height: 12px; background: none; border: 1.8px dashed var(--ink); border-radius: 2px; }
+.pill i.box.b { border-color: var(--muted); border-width: 1.4px; }
+.heat th.sel, .heat th.selb { background: none; color: var(--ink); font-weight: 700; outline: 1.8px dashed var(--ink); outline-offset: -1px; border-radius: 2px; }
+.heat th.selb { color: var(--muted); outline-color: var(--muted); outline-width: 1.4px; }
+
+.suite { display: flex; flex-wrap: wrap; gap: 4px 2px; font-size: 12px; margin: 2px 0 6px; }
+.suite a, .suite span { padding: 3px 9px; border: 1px solid var(--line-2); border-radius: 3px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.suite a:hover { color: var(--ink); border-color: var(--ink); }
+.suite .on { color: var(--paper); background: var(--ink); border-color: var(--ink); font-weight: 600; }
+</style>
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">
+      <span class="eyebrow">Báo cáo quản trị tháng</span>
+      <h1>Biến phí và định phí</h1>
+      <span class="sub" id="sub"></span>
+    </div>
+    <div class="ctrl">
+      <div class="seg" id="mode" role="group" aria-label="Loại kỳ">
+        <button type="button" data-v="m">Month</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="c">Custom</button>
+      </div>
+      <div class="per" id="per"></div>
+    </div>
+  </header>
+  
+  <nav class="nav" aria-label="Phần">
+    <a href="#bien-phi"><b>1</b>Biến phí / tấn</a><a href="#dien"><b>1a</b>Điện năng</a><a href="#carton"><b>1b</b>Bao bì carton</a><a href="#dinh-phi"><b>2</b>Định phí</a><a href="#ban-do"><b>2a</b>Biến động ở đâu</a><a href="#chi-tiet"><b>2b</b>Chi tiết từng nhóm</a><a href="#ca-nam"><b>3</b>Cả năm</a><a href="#ton-kho"><b>4</b>Tồn kho & công suất</a>
+    <span class="pill" style="margin-left:auto;white-space:nowrap"><span id="selnote" class="pill"><i class="box"></i>Tháng phân tích <i class="box b"></i>Tháng gốc</span> <i class="fc"></i><span id="fcnote">Dự báo</span></span>
+  </nav>
+
+  <p class="headline" id="headline"></p>
+  <div class="kpis" id="kpis"></div>
+
+  <section class="ch" id="bien-phi">
+    <div class="ch-head"><span class="no">1</span><h2>Biến phí sản xuất trên mỗi tấn sản xuất</h2><span class="q">Mỗi tấn Phôi, Chai, Nắp làm ra tốn bao nhiêu điện, carton, vật tư, vận chuyển NVL, và con số đó có đang tăng không?</span></div>
+    <p class="lede" id="var-lede"></p>
+    <div class="block">
+      <div class="block-h"><h3>Biến phí / tấn sản xuất theo tháng</h3><div class="legend" id="var-legend"></div></div>
+      <div class="multi" id="var-multi"></div>
+    </div>
+    <div class="tbl-wrap block"><table class="t" id="var-tbl"></table></div>
+
+    <div class="subsec" id="dien">
+      <h3>Điện năng tiêu thụ (kWh / tấn)</h3>
+      <p class="q">Dây chuyền nào tốn điện hơn trên mỗi tấn, và chi phí điện đổi vì dùng nhiều kWh hơn hay vì giá điện?</p>
+      <div class="block">
+        <div class="legend" id="kwh-legend"></div>
+        <div class="chart" id="kwh-chart"></div>
+      </div>
+      <div class="tbl-wrap block"><table class="t" id="kwh-tbl"></table></div>
+      <div id="kwh-call"></div>
+      <p class="assume" id="kwh-note"></p>
+    </div>
+
+    <div class="subsec" id="carton">
+      <h3>Bao bì tiêu thụ (chi phí carton / tấn)</h3>
+      <p class="q">Mỗi tấn cần bao nhiêu thùng carton, giá mỗi thùng bao nhiêu, và chi phí carton / tấn đổi vì đâu?</p>
+      <div class="block">
+        <div class="legend" id="ct-legend"></div>
+        <div class="multi" id="ct-multi"></div>
+      </div>
+      <div class="tbl-wrap block"><table class="t" id="ct-tbl"></table></div>
+      <p class="assume" id="ct-note"></p>
+    </div>
+  </section>
+
+  <section class="ch" id="dinh-phi">
+    <div class="ch-head"><span class="no">2</span><h2>Định phí</h2><span class="q">Định phí qua các tháng có đổi không? Cấu trúc có lệch không, lệch ở nhóm nào?</span></div>
+    <p class="lede" id="fix-lede"></p>
+    <div class="block">
+      <div class="block-h"><h3>Định phí theo tháng</h3>
+        <div class="seg" id="fix-view" role="group" aria-label="Cách xem định phí"><button type="button" data-v="amt">Số tiền</button><button type="button" data-v="pct">Cơ cấu %</button></div>
+      </div>
+      <div class="legend" id="fix-legend"></div>
+      <div class="chart" id="fix-chart"></div>
+    </div>
+    <div class="tbl-wrap block"><table class="t" id="fix-tbl"></table></div>
+
+    <div class="subsec" id="ban-do">
+      <div class="block-h"><h3>Biến động nằm ở khoản nào, tháng nào</h3>
+        <div class="seg" id="heat-mode" role="group" aria-label="So sánh"><button type="button" data-v="trend">So với mức thường</button><button type="button" data-v="plan">So với kế hoạch</button></div>
+      </div>
+      <p class="q" id="heat-q"></p>
+      <div class="scale" id="heat-scale"></div>
+      <div class="tbl-wrap block"><table class="heat" id="heat"></table></div>
+    </div>
+
+    <div class="subsec" id="chi-tiet">
+      <h3 id="d-title"></h3>
+      <div class="catpick" id="d-cats" role="group" aria-label="Nhóm định phí"></div>
+      <div class="drill-h"><span class="lbl-s" id="d-sub"></span>
+        <div class="seg" id="d-by" role="group" aria-label="Chia theo"></div>
+      </div>
+      <div class="legend block" id="d-legend"></div>
+      <div class="chart" id="d-chart"></div>
+      <div class="nextbox" id="d-next"></div>
+      <div class="tbl-wrap block"><table class="t" id="d-tbl"></table></div>
+      <div id="d-extra"></div>
+      <div id="d-call"></div>
+    </div>
+  </section>
+
+  <section class="ch" id="ca-nam">
+    <div class="ch-head"><span class="no">3</span><h2>Cả năm: Forecast so với kế hoạch và năm trước</h2><span class="q">Biến phí trên mỗi tấn và định phí cả năm: thực tế cộng dự báo, so với kế hoạch năm và năm trước.</span></div>
+    <p class="lede" id="yr-lede"></p>
+    <div class="panel-h"><h3>Biến phí sản xuất trên mỗi tấn</h3><span class="note">nghìn đồng / tấn sản xuất</span></div>
+    <div class="tbl-wrap block"><table class="t" id="yr-var"></table></div>
+    <div class="panel-h" style="margin-top:22px"><h3>Định phí</h3><span class="note">số tiền</span></div>
+    <div class="tbl-wrap block"><table class="t" id="yr-fix"></table></div>
+    <p class="cl-hint" id="yr-note"></p>
+  </section>
+
+  <section class="ch" id="ton-kho">
+    <div class="ch-head"><span class="no">4</span><h2>Tồn kho thành phẩm và công suất</h2><span class="q">Đang giữ bao nhiêu hàng, đủ bán bao nhiêu ngày, có hàng nằm lâu không; công suất còn trống bao nhiêu để bán thêm?</span></div>
+    <p class="lede" id="inv-lede"></p>
+    <div class="block"><div class="block-h"><h3>Giá trị tồn kho thành phẩm cuối tháng</h3><div class="legend" id="inv-legend"></div></div><div class="chart" id="inv-chart"></div></div>
+    <div class="tbl-wrap block"><table class="t" id="inv-tbl"></table></div>
+    <div class="panel-h" style="margin-top:22px"><h3 id="slow-t">Hàng nằm lâu</h3><span class="note">số ngày tồn &gt; 45 ngày theo tốc độ bán 3 tháng gần nhất</span></div>
+    <div class="tbl-wrap block"><table class="t" id="slow-tbl"></table></div>
+    <div class="block" style="margin-top:22px"><div class="block-h"><h3>Tỷ lệ dùng công suất theo tháng (đường) và kế hoạch (chấm)</h3><div class="legend" id="cap-legend"></div></div><div class="chart" id="cap-chart"></div></div>
+    <div class="tbl-wrap block"><table class="t" id="cap-tbl"></table></div>
+    <p class="cl-hint" id="inv-note"></p>
+  </section>
+
+  <footer class="method" id="method"></footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+<script type="application/json" id="bd-data">{"inv":{"fg":[{"c":"FG01","n":"Phôi PET 18g (chai 330ml)","g":"Phôi","w":18.18,"src":"CT","q":[274,238,233,236,236,238,252,404,544,712,846,951,886,844,800,740,605,508,422,398,394,389,377,348],"v":[207394211,180307541,176517638,179293378,179853561,181361174,192597852,309174304,416694240,547440460,650517776,732041882,685334540,659054700,646960543,620489452,522032852,448438128,377119371,358505891,355919094,350743412,339941005,313279674],"sold":[454,308,366,417,430,399,490,535,498,530,522,439,471,316,417,476,558,523,442,561,651,628,591,489]},{"c":"FG02","n":"Phôi PET 28g (chai 500ml)","g":"Phôi","w":28.28,"src":"CT","q":[120,110,111,113,118,121,121,191,256,316,395,473,444,420,389,362,290,245,218,201,191,187,184,181],"v":[132457122,121537074,122619841,125185006,131145670,134447120,134824593,213116647,285907499,354261046,442848452,530962374,501103201,479408054,461966076,446306491,367136290,318192016,287465632,266677250,253887290,247994203,243968959,239486785],"sold":[202,150,190,196,204,225,206,228,239,244,259,251,250,188,240,235,252,270,279,281,288,293,318,299]},{"c":"FG03","n":"Phôi PET 42g (chai 1,5L)","g":"Phôi","w":42.38,"src":"CT","q":[43,38,39,41,42,45,45,67,90,117,140,163,151,144,131,121,96,82,72,67,64,63,63,61],"v":[68743695,60805910,62391825,65787516,67607023,72412330,72614309,108261409,145560276,189975295,227316833,264961914,246824561,237895915,225235388,216933124,176692976,154953647,138170024,129393736,123828881,121588507,121560567,117447381],"sold":[71,49,66,73,73,82,72,74,80,82,86,77,88,56,81,87,83,89,93,94,95,103,96,97]},{"c":"FG04","n":"Phôi PET 52g (chai 2L CSD)","g":"Phôi","w":52.4,"src":"CT","q":[79,70,69,69,70,73,74,108,154,195,240,279,261,245,228,213,173,149,127,113,110,109,106,104],"v":[153164212,135836968,133863380,134251942,136647659,142452474,144826458,211634727,302055430,384008982,472583211,549999439,517394646,491253032,477463087,463160600,387549842,342636970,296110384,265211478,258777645,255778464,248682447,243450488],"sold":[127,87,112,121,125,136,129,127,140,151,162,139,146,107,146,131,157,160,148,157,180,179,177,159]},{"c":"FG05","n":"Phôi PET 25g gia công (khách cấp hạt)","g":"Phôi","w":25,"src":"KG","q":[92,82,82,82,84,91,92,141,197,251,302,346,324,307,285,255,211,180,160,144,141,139,140,131],"v":[85061504,75875562,76088932,76296598,78306520,84920632,86063984,131933982,184346532,235495020,283708374,325802042,306551178,293820962,284315795,264443241,226163557,197479408,178053616,160788509,157680880,155309891,155885395,145609291],"sold":[153,106,145,142,154,168,156,177,176,212,185,159,168,126,179,181,209,198,201,205,208,228,246,187]},{"c":"FG06","n":"Chai PET 500ml nước chấm","g":"Chai","w":22.25,"src":"CT","q":[89,81,80,82,90,89,97,103,103,103,100,96,96,92,89,90,94,74,59,42,28,53,76,82],"v":[94178693,85834777,84851610,87277774,96400250,95462137,104439425,111146665,111593956,112189367,109057046,104955030,106182641,103738035,105900277,111209390,118868939,94535779,75718338,53918702,36035034,68048997,97718429,105335043],"sold":[143,109,123,136,176,149,163,178,182,161,178,155,157,136,149,160,178,146,168,175,182,157,192,164]},{"c":"FG07","n":"Chai HDPE 1L hoá chất/dầu","g":"Chai","w":46.7,"src":"CT","q":[76,70,69,72,75,75,73,73,77,77,81,77,78,71,73,76,76,59,45,32,17,45,58,65],"v":[142827530,131761697,130158438,136134948,142491155,142892221,139760656,140117508,148720775,149495768,157611033,150233484,154894032,143604763,156850505,170002620,173655544,136059124,104140004,74203207,39473973,104400000,134208314,150344703],"sold":[123,94,117,123,132,130,119,125,141,140,143,123,130,97,126,132,134,141,131,130,150,152,145,128]},{"c":"FG08","n":"Chai PET 300ml mỹ phẩm","g":"Chai","w":20.4,"src":"CT","q":[86,76,76,78,81,84,84,85,86,90,90,88,87,81,84,82,83,69,55,38,23,52,68,72],"v":[88597520,78405658,78486169,80832622,84410432,87692706,88003837,89251930,90669998,95404122,95509815,93609481,93573204,88644416,96881149,97757283,101150878,85019796,68075306,47056997,28552271,64418438,84364799,89264113],"sold":[141,110,125,141,137,150,141,142,155,155,157,135,147,114,135,133,146,137,152,156,153,184,168,135]},{"c":"FG09","n":"Chai HDPE 500ml dược phẩm","g":"Chai","w":28.5,"src":"CT","q":[69,62,66,69,70,72,71,70,75,78,78,77,75,68,67,70,75,64,51,37,24,46,60,65],"v":[84783475,76303215,81403036,85294726,86923080,89657322,88827872,87789700,94624223,98915634,99109842,98101513,97133521,89589433,93454784,101480638,111030744,95546518,76382997,55524737,36065231,69080601,89889834,97347880],"sold":[117,90,115,125,125,128,117,121,136,146,130,122,126,89,121,121,129,131,126,127,135,147,138,128]},{"c":"FG10","n":"Chai PE 250ml gia công (khách cấp hạt)","g":"Chai","w":22,"src":"KG","q":[23,22,21,22,23,24,25,24,25,26,26,24,25,22,23,24,25,19,15,10,5,12,17,20],"v":[21368841,20463600,19575439,20558045,21630279,22629449,23665132,22789651,23824494,24893962,24964171,23113060,24552643,21767563,24311245,26357099,27993033,21462116,17007399,11366868,5689856,13622496,19289538,22658205],"sold":[39,32,34,38,44,41,44,39,44,41,42,36,44,26,41,44,44,46,38,45,49,47,43,42]},{"c":"FG11","n":"Nắp 28mm PCO1881 nước giải khát","g":"Nắp","w":2.24,"src":"CT","q":[676,633,629,640,685,680,697,716,755,774,762,749,724,677,684,670,700,728,747,771,807,848,857,822],"v":[118657036,111151926,110570105,112652525,120827287,120122163,123474652,126948519,134298328,138077676,136036469,133921567,130641760,123340064,128641918,128788432,136151204,142347165,146342663,151106046,158268179,166305826,167790264,160881569],"sold":[1148,911,1064,1083,1262,1170,1179,1269,1344,1317,1369,1217,1189,917,1179,1208,1239,1264,1278,1289,1384,1470,1395,1174]},{"c":"FG12","n":"Nắp 38mm nước chấm/dầu ăn","g":"Nắp","w":4.36,"src":"CT","q":[615,609,613,658,675,678,694,719,745,747,763,742,720,649,645,682,733,714,721,757,779,785,802,783],"v":[161920152,160293556,161580369,173775340,178391862,179690855,184403872,191140082,198416043,199440305,204099433,198959160,194991221,177712820,183016125,198682668,216633671,212313648,215090811,225861071,232412937,234139847,238523830,232780560],"sold":[1039,911,1091,1177,1130,1162,1202,1284,1309,1336,1336,1112,1232,889,1103,1149,1282,1258,1234,1309,1413,1425,1314,1247]},{"c":"FG13","n":"Nắp flip-top 24mm mỹ phẩm","g":"Nắp","w":3.3,"src":"CT","q":[693,630,636,650,681,675,697,711,749,801,776,772,748,699,683,706,711,767,745,741,773,809,815,797],"v":[180788939,164362502,166204035,170168128,178486259,177384559,183613972,187465261,197847548,212066680,205797769,205232533,200439967,189074537,190013373,200826268,204667158,222097414,216286858,215223954,224580858,235072434,236374922,231162183],"sold":[1152,888,1112,1081,1229,1180,1235,1289,1288,1398,1254,1234,1149,901,1118,1222,1258,1372,1225,1225,1349,1374,1371,1284]},{"c":"FG14","n":"Nắp chống trẻ em 28mm","g":"Nắp","w":5.48,"src":"CT","q":[497,465,474,473,506,516,521,520,521,522,527,526,523,475,472,471,502,526,528,537,544,567,578,564],"v":[175919010,164563616,167987861,167946654,179824097,183884087,186120154,185882591,186586542,187410664,189567286,189674963,190346970,174716480,179467224,183461753,198306731,209072366,210514376,214155498,216966453,226112531,229905493,224282473],"sold":[823,631,770,819,861,846,817,881,905,927,907,817,836,661,800,805,894,895,887,906,1022,984,953,855]},{"c":"FG15","n":"Nắp 28mm gia công (khách cấp hạt)","g":"Nắp","w":2.4,"src":"KG","q":[62,60,59,62,69,71,70,68,69,73,77,72,72,67,71,72,71,70,74,75,77,78,79,77],"v":[10599581,10256478,10091987,10642927,11871388,12235539,12086632,11748775,11938854,12665057,13375125,12527276,12669176,11897853,13096458,13560028,13525820,13413814,14197360,14377447,14766748,14937913,15121043,14730228],"sold":[104,90,106,115,136,116,118,105,113,126,142,100,114,94,129,125,120,109,128,132,129,134,134,120]}],"cap":{"Phôi":[44000,44000,44000,44000,44000,44000,44000,44000,44000,44000,44000,44000,52000,52000,52000,52000,52000,52000,52000,52000,52000,52000,52000,52000],"Chai":[26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000,26000],"Nắp":[25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000,25000]},"ot":{"Phôi":[60,61,58,60,63,62,61,402,650,997,938,264,83,91,94,90,92,94,89,86,94,92,90,92],"Chai":[80,80,78,77,77,82,80,78,77,82,77,81,79,81,79,84,83,79,82,82,82,408,79,77],"Nắp":[67,70,68,68,71,68,68,69,69,69,67,71,72,71,68,73,71,73,70,69,67,73,70,71]},"fg_v":[1726461522,1577760079,1582390665,1626098128,1694816523,1727244769,1765323398,2128401749,2533084739,2941740037,3312102637,3614095716,3462633263,3285518628,3267573948,3243459087,2981559239,2693567908,2420675138,2243371390,2142905331,2327553558,2423224841,2388060576]},"version":"bien-dinh-phi 1.0","nguon":"Bộ dữ liệu giả lập v3 (sổ chi phí, nhân sự, ngân sách v3 + sản xuất và NVL bao bì v2); 100% giả lập","months":["T1/25","T2/25","T3/25","T4/25","T5/25","T6/25","T7/25","T8/25","T9/25","T10/25","T11/25","T12/25","T1/26","T2/26","T3/26","T4/26","T5/26","T6/26","T7/26","T8/26","T9/26","T10/26","T11/26","T12/26"],"cutoff":20,"groups":["Phôi","Chai","Nắp"],"prod":{"Phôi":[27620,17256,24245,26304,27366,28999,28777,39072,40108,42617,42851,37834,27209,19189,26258,26562,25494,28588,28244,33219,37923,38799,38796,33437],"Chai":[16147,11444,14799,16378,17836,17114,16441,17105,19012,18534,18590,15827,17113,12186,16385,17083,18115,15404,15652,15916,17303,22805,21304,17703],"Nắp":[15622,12106,15359,16158,17329,16537,16923,17962,18533,19009,18338,16212,16434,11900,15772,16662,18177,18304,17474,18168,19948,20119,19099,16975]},"plan_prod":{"Phôi":[26160,20585,25273,26035,26682,26363,27281,29977,31565,31849,30457,26528,25314,19919,24454,25192,25819,25510,26398,29007,30543,30818,29471,25669],"Chai":[15339,12070,14818,15265,15645,15458,15996,17577,18508,18675,17858,15555,17394,13687,16804,17311,17741,17529,18140,19932,20988,21177,20251,17639],"Nắp":[15369,12093,14847,15295,15676,15488,16027,17611,18544,18711,17893,15585,17044,13411,16465,16962,17384,17176,17774,19531,20565,20750,19843,17283]},"var":[{"k":"dien","ten":"Điện năng sản xuất","dv":"kWh","a":{"Phôi":[92845545,60907710,81594084,87496368,95609073,101664793,100292560,130769705,135842205,143509216,144609146,127752664,93855904,69231261,91209832,92316867,91051407,99442984,99114085,115359480,131709561,133368149,133924619,115018433],"Chai":[89762269,65520303,81960987,90650569,103549790,99369661,95563260,97135176,109192533,104391871,106710668,93237428,100124983,73772820,93618717,99181042,103880572,90650345,91601499,103778202,107417603,134291085,121362379,100488048],"Nắp":[75413078,59785333,73274498,76095046,84116143,80519053,84033975,88680219,91160659,91501671,89116111,79084267,81384908,62454918,78829799,81835973,88165901,90884324,86257224,89952673,98267451,97838034,92123174,84655090]},"p":{"Phôi":[85304665,67124069,82409595,84895264,91245347,90153916,93292990,102513172,107943119,108914757,104152538,90717368,87469163,68827257,84500633,87049373,89214246,88147110,91216309,100231252,105540330,106490340,101834127,88698020],"Chai":[84090363,66168566,81236504,83686790,89946480,88870585,91964975,101053909,106406561,107364368,102669939,89426017,101049323,79513139,97619910,100564358,103065343,101832527,105378239,115792811,121926158,123023663,117644542,102468969],"Nắp":[71786295,56486807,69350010,71441771,76785546,75867076,78508696,86267741,90837195,91654856,87647314,76341237,84360947,66381481,81497904,83956075,86044019,85014804,87974939,96669536,101789956,102706207,98215452,85546137]},"q":{"Phôi":[47613,31235,41843,44870,46753,49714,49043,63946,66427,70176,70714,62471,45895,33854,44601,45143,44524,48627,48467,56411,64406,65217,65489,56244],"Chai":[46032,33600,42031,46487,50636,48592,46730,47499,53395,51047,52181,45593,48961,36075,45779,48499,50797,44328,44793,50747,52527,65668,59346,49138],"Nắp":[38673,30659,37577,39023,41133,39374,41092,43364,44577,44744,43578,38672,39797,30540,38548,40018,43113,44442,42180,43987,48053,47843,45048,41396]},"qp":{"Phôi":[43746,34423,42261,43536,44619,44085,45620,50129,52784,53259,50930,44361,42772,33656,41321,42567,43626,43104,44605,49013,51609,52074,49797,43373],"Chai":[43123,33933,41660,42916,43984,43457,44971,49415,52033,52501,50205,43729,49413,38882,47736,49176,50399,49796,51530,56622,59622,60158,57528,50107],"Nắp":[36813,28968,35564,36637,37548,37099,38391,42185,44419,44819,42859,37331,41252,32460,39852,41054,42075,41572,43020,47271,49775,50223,48027,41832]}},{"k":"carton","ten":"Bao bì carton","dv":"thùng","a":{"Phôi":[10725000,6677002,9141425,10194332,10518962,10708349,11452440,15624360,15512139,16425944,16540388,14554395,10537080,7347102,9972174,10493344,10023558,11132730,10577086,13407049,15539910,15549640,15217845,13208580],"Chai":[6612500,4651395,6035845,6700206,7334437,7042654,6843838,7195760,7863180,7677206,7689386,6625980,7075440,5237035,6810265,7076906,7691599,6367095,6744996,6839801,7327445,9705480,9269289,7560864],"Nắp":[51825000,39974489,50741170,52962939,57772800,54734350,56420848,60132400,62376188,63686775,61237312,54891945,54929760,40078571,53560430,56884969,61713162,62999370,59941138,62220128,68523975,69908155,66362355,58626178]},"p":{"Phôi":[10108319,7953979,9765263,10059806,10309988,10186665,10541356,11583162,12196702,12306489,11768397,10250331,10074499,7927367,9732591,10026149,10275494,10152584,10506087,11544408,12155895,12265315,11729023,10216036],"Chai":[6334986,4984839,6119989,6304583,6461374,6384087,6606374,7259285,7643797,7712602,7375374,6423986,7399377,5822382,7148257,7363866,7547001,7456728,7716364,8478975,8928092,9008457,8614569,7503332],"Nắp":[51218349,40302414,49480100,50972537,52240198,51615327,53412524,58691304,61800082,62356368,59629881,51937917,58504305,46035548,56518785,58223526,59671515,58957755,61010608,67040309,70591320,71226740,68112402,59326234]},"q":{"Phôi":[858,534,730,814,839,853,912,1242,1231,1303,1310,1151,831,578,779,817,778,862,817,1033,1194,1192,1164,1008],"Chai":[529,372,482,535,585,561,545,572,624,609,609,524,558,412,532,551,597,493,521,527,563,744,709,577],"Nắp":[4146,3197,4052,4229,4608,4360,4493,4780,4950,5052,4850,4341,4332,3153,4184,4429,4790,4878,4630,4794,5265,5359,5076,4474]},"qp":{"Phôi":[804,633,777,800,820,811,839,922,970,979,936,816,778,612,752,775,794,784,812,892,939,948,906,789],"Chai":[504,397,487,502,514,508,526,578,608,614,587,511,572,450,552,569,583,576,596,655,690,696,665,580],"Nắp":[4075,3207,3937,4056,4157,4107,4250,4670,4917,4962,4745,4133,4520,3556,4366,4498,4610,4555,4713,5179,5453,5502,5262,4583]}},{"k":"vt","ten":"Vật tư tiêu hao","dv":null,"a":{"Phôi":[11174408,6981322,9808970,10641830,11071687,11732142,11642263,15807417,16226359,17241624,17336278,15306663,11393288,8035152,10995099,11122259,10675305,11970526,11826482,13909681,15879588,16246380,16244906,14000956],"Chai":[6532538,4630060,5987337,6626035,7215739,6923921,6651584,6920078,7691677,7498473,7521170,6403055,7165902,5102748,6861045,7153257,7585367,6449934,6553926,6664324,7245189,9549260,8920639,7412849],"Nắp":[6320154,4897883,6213784,6536997,7010791,6690515,6846559,7266860,7497846,7690406,7419141,6559078,6881395,4982790,6604086,6977050,7611261,7664398,7317110,7607526,8352868,8424530,7997332,7108021]},"p":{"Phôi":[10663432,8390783,10301537,10612255,10876177,10746081,11120250,12219268,12866502,12982319,12414676,10813243,10730937,8443901,10366751,10679437,10945029,10814110,11190647,12296623,12947954,13064503,12493267,10881697],"Chai":[6252443,4919888,6040248,6222436,6377185,6300904,6520296,7164699,7544201,7612109,7279275,6340284,7373869,5802310,7123614,7338479,7520984,7431021,7689763,8449745,8897313,8977401,8584871,7477464],"Nắp":[6264610,4929462,6052002,6234544,6389594,6313165,6532984,7178641,7558881,7626922,7293440,6352622,7225242,5685359,6980032,7190566,7369392,7281243,7534769,8279433,8717981,8796455,8411836,7326750]}},{"k":"vc","ten":"Vận chuyển NVL đầu vào","dv":null,"a":{"Phôi":[6244023,1998541,7363939,6888280,6981562,6848502,6948240,10931199,10095483,10476074,10292469,7718613,6127166,3027425,10446373,8670463,8108851,8939176,8415290,11156426,13007554,12794373,11081952,8359737],"Chai":[3650244,1325446,4494905,4288922,4550086,4041758,3969744,4785396,4785497,4556100,4465284,3228836,3853732,1922576,6518635,5576389,5761766,4816588,4663533,5345201,5934801,7520248,6085483,4426088],"Nắp":[3531568,1402116,4664907,4231290,4420850,3905511,4086107,5025204,4664902,4672719,4404710,3307513,3700727,1877379,6274500,5439025,5781435,5723508,5206587,6101707,6842142,6634498,5455621,4244080]},"p":{"Phôi":[6722283,5289593,6494142,6690020,6856398,6774385,7010263,7703090,8111109,8184120,7826276,6816724,6700452,5272415,6473052,6668294,6834131,6752385,6987497,7678074,8084768,8157542,7800859,6794587],"Chai":[3932015,3094002,3798570,3913144,4010462,3962491,4100461,4505711,4744371,4787077,4577765,3987256,4593116,3614206,4437235,4571073,4684753,4628716,4789884,5263270,5542056,5591942,5347439,4657645],"Nắp":[3936987,3097915,3803373,3918092,4015533,3967501,4105646,4511408,4750370,4793130,4583554,3992298,4497477,3538950,4344842,4475893,4587206,4532336,4690148,5153677,5426658,5475506,5236093,4560663]}}],"fixed":[{"km":"AD01","ten":"Tư vấn, kiểm toán, pháp lý","nhom":"Hành chính (admin)","pt":"Tư vấn, kiểm toán, pháp lý","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[22000000,22000000,165000000,22000000,22000000,22000000,22000000,22000000,22000000,22000000,22000000,22000000,22880000,22880000,171600000,22880000,22880000,22880000,22880000,22880000,22880000,22880000,22880000,22880000],"p":[21500510,22433611,162307096,22277310,21809984,22098919,21994158,21912648,22178798,21733335,22349195,21575265,22145526,23106619,167176308,22945630,22464283,22761887,22653983,22570027,22844162,22385335,23019670,22222523]},{"km":"AD02","ten":"Văn phòng phẩm, IT, phần mềm","nhom":"Hành chính (admin)","pt":"Văn phòng phẩm, IT, phần mềm","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[56000000,21000000,21000000,21000000,21000000,21000000,21000000,21000000,21000000,21000000,21000000,21000000,58240000,21840000,21840000,21840000,21840000,21840000,21840000,21840000,21840000,21840000,21840000,21840000],"p":[54728572,21413902,20657267,21264705,20818621,21094423,20994424,20916618,21170671,20745456,21333322,20594571,56370429,22056319,21276985,21902646,21443180,21727255,21624256,21544117,21805791,21367820,21973322,21212408]},{"km":"AD03","ten":"Thuê văn phòng, công tác phí, tiếp khách","nhom":"Hành chính (admin)","pt":"Thuê văn phòng, công tác phí, tiếp khách","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[65025500,65209288,67854112,64278529,62156890,63959417,62737505,63130026,67517294,62884415,63627318,66837473,70413879,66381011,69952844,64192112,64891584,67683759,64977373,69938656,70336918,68375392,69177426,68308705],"p":[63549156,66494537,66746690,65088761,61620035,64246999,62720846,62879365,68066019,62122185,64637241,65547099,65455631,68489373,68749091,67041423,63468636,66174409,64602471,64765746,70107999,63985850,66576359,67513512]},{"km":"AD04","ten":"Phí ngân hàng, thuế phí hành chính","nhom":"Hành chính (admin)","pt":"Phí ngân hàng, thuế phí hành chính","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[8369143,5161637,5310179,5360117,5414157,5410816,5416622,5470452,5508787,5540988,5534391,5418077,8465580,5221007,5419457,5449101,5532201,5531663,5639974,5691000,5795521,5814672,5789805,5649380],"p":[8179129,5263371,5223514,5427681,5367394,5435145,5415184,5448731,5553558,5473825,5622236,5313475,8424503,5421272,5380219,5590512,5528416,5598199,5577639,5612193,5720165,5638040,5790903,5472879]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C1","a":[2222921,2222921,1778337,2222921,2222921,13134736,2222921,2222921,1778337,2222921,2222921,1778337,2175230,2175230,1740184,2175230,2175230,13494056,2175230,2175230,1740184,2175230,2175230,1740184],"p":[2029156,1693146,1577002,2101546,2098729,10475184,2188861,2126858,1697377,2225377,2113486,1515113,2096378,1749237,1629245,2171166,2168256,11362031,2261373,2197317,1753608,2299099,2183502,1565306]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C2","a":[2222921,2222921,1778337,2222921,2222921,13134736,2222921,2222921,1778337,2222921,2222921,1778337,2175230,2175230,1740184,2175230,2175230,13494056,2175230,2175230,1740184,2175230,2175230,1740184],"p":[2029156,1693146,1577002,2101546,2098729,10475184,2188861,2126858,1697377,2225377,2113486,1515113,2096378,1749237,1629245,2171166,2168256,11362031,2261373,2197317,1753608,2299099,2183502,1565306]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C3","a":[2000629,2000629,1600503,2000629,2000629,11821262,2000629,2000629,1600503,2000629,2000629,1600503,1957707,1957707,1566165,1957707,1957707,12144651,1957707,1957707,1566165,1957707,1957707,1566165],"p":[1826241,1523832,1419302,1891391,1888856,9427666,1969975,1914172,1527640,2002839,1902137,1363602,1886741,1574313,1466321,1954049,1951430,10225828,2035236,1977585,1578247,2069189,1965151,1408775]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C4","a":[2000629,2000629,1600503,2000629,2000629,11821262,2000629,2000629,1600503,2000629,2000629,1600503,1957707,1957707,1566165,1957707,1957707,12144651,1957707,1957707,1566165,1957707,1957707,1566165],"p":[1826241,1523832,1419302,1891391,1888856,9427666,1969975,1914172,1527640,2002839,1902137,1363602,1886741,1574313,1466321,1954049,1951430,10225828,2035236,1977585,1578247,2069189,1965151,1408775]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N12","a":[1778337,1778337,1422670,1778337,1778337,1422670,1778337,1778337,15807441,1778337,1778337,1422670,1740184,1740184,1392147,1740184,1740184,1392147,1740184,1740184,16280385,1740184,1740184,1392147],"p":[1623325,1354517,1261602,1681237,1678983,1134604,1751089,1701486,15087800,1780301,1690789,1212090,1677103,1399389,1303396,1736933,1734605,1172191,1809099,1757853,16405979,1839279,1746801,1252244]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N34","a":[1778337,1778337,1422670,1778337,1778337,1422670,1778337,1778337,15807441,1778337,1778337,1422670,1740184,1740184,1392147,1740184,1740184,1392147,1740184,1740184,16280385,1740184,1740184,1392147],"p":[1623325,1354517,1261602,1681237,1678983,1134604,1751089,1701486,15087800,1780301,1690789,1212090,1677103,1399389,1303396,1736933,1734605,1172191,1809099,1757853,16405979,1839279,1746801,1252244]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N56","a":[1778337,1778337,1422670,1778337,1778337,1422670,1778337,1778337,15807441,1778337,1778337,1422670,1740184,1740184,1392147,1740184,1740184,1392147,1740184,1740184,16280385,1740184,1740184,1392147],"p":[1623325,1354517,1261602,1681237,1678983,1134604,1751089,1701486,15087800,1780301,1690789,1212090,1677103,1399389,1303396,1736933,1734605,1172191,1809099,1757853,16405979,1839279,1746801,1252244]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P1","a":[2667506,2667506,16929770,2667506,2667506,2134005,2667506,2667506,2134005,2667506,2667506,2134005,2610276,2610276,15160820,2610276,2610276,2088220,2610276,2610276,2088220,2610276,2610276,2088220],"p":[2434988,2031776,15013060,2521855,2518475,1701906,2626633,2552230,2036853,2670452,2536183,1818135,2515654,2099084,14194301,2605399,2601907,1758287,2713648,2636780,2104330,2758919,2620202,1878367]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P2","a":[2667506,2667506,16929770,2667506,2667506,2134005,2667506,2667506,2134005,2667506,2667506,2134005,2610276,2610276,15160820,2610276,2610276,2088220,2610276,2610276,2088220,2610276,2610276,2088220],"p":[2434988,2031776,15013060,2521855,2518475,1701906,2626633,2552230,2036853,2670452,2536183,1818135,2515654,2099084,14194301,2605399,2601907,1758287,2713648,2636780,2104330,2758919,2620202,1878367]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P3","a":[2445214,2445214,15518955,2445214,2445214,1956171,2445214,2445214,1956171,2445214,2445214,1956171,2392753,2392753,13897418,2392753,2392753,1914202,2392753,2392753,1914202,2392753,2392753,1914202],"p":[2232072,1862461,13761972,2311700,2308602,1560081,2407747,2339544,1867115,2447915,2324835,1666624,2306016,1924161,13011443,2388282,2385081,1611763,2487511,2417048,1928969,2529009,2401852,1721836]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P4","a":[0,0,0,0,0,0,0,0,0,0,0,0,1305138,1305138,7580410,1305138,1305138,1044110,1305138,1305138,1044110,1305138,1305138,1044110],"p":[0,0,0,0,0,0,0,0,0,0,0,0,1257827,1049542,7097151,1302699,1300953,879144,1356824,1318390,1052165,1379459,1310101,939183]},{"km":"BD01","ten":"Bảo dưỡng định kỳ thuê ngoài","nhom":"Bảo dưỡng & sửa chữa","pt":"Bảo dưỡng định kỳ thuê ngoài","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"XU","a":[1556045,1556045,1244836,1556045,1556045,1244836,1556045,1556045,1244836,1556045,1556045,44399151,1522661,1522661,1218129,1522661,1522661,1218129,1522661,1522661,1218129,1522661,1522661,45882844],"p":[1420410,1185202,1103901,1471082,1469110,992779,1532203,1488801,1188164,1557764,1479440,37827318,1467465,1224466,1140472,1519816,1517779,1025668,1582961,1538122,1227526,1609369,1528451,41271890]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C1","a":[0,0,0,0,21993088,0,0,23369292,0,17289724,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"p":[4665240,4485657,4961375,4043104,4991432,3862411,3840658,3583236,4196294,4160774,4990285,3639314,4819790,4634258,5125736,4177044,5156788,3990365,3967892,3701941,4335309,4298613,5155604,3759877]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C2","a":[0,0,0,0,0,0,0,0,0,0,0,0,20921608,0,29513841,32943034,0,0,0,0,25338732,0,0,0],"p":[4665240,4485657,4961375,4043104,4991432,3862411,3840658,3583236,4196294,4160774,4990285,3639314,4819790,4634258,5125736,4177044,5156788,3990365,3967892,3701941,4335309,4298613,5155604,3759877]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C3","a":[0,0,0,0,0,0,0,0,0,0,0,0,31382411,0,19675894,0,0,24717716,0,0,0,0,25615855,0],"p":[4198716,4037092,4465238,3638794,4492288,3476170,3456592,3224912,3776665,3744697,4491257,3275382,4337811,4170832,4613162,3759340,4641109,3591329,3571102,3331747,3901778,3868751,4640043,3383889]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C4","a":[0,24499039,0,0,0,0,0,0,0,25934586,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"p":[4198716,4037092,4465238,3638794,4492288,3476170,3456592,3224912,3776665,3744697,4491257,3275382,4337811,4170832,4613162,3759340,4641109,3591329,3571102,3331747,3901778,3868751,4640043,3383889]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N12","a":[21260618,0,0,0,0,0,0,0,27433815,0,0,0,0,0,0,0,0,0,18803306,0,0,0,0,15928145],"p":[3732192,3588526,3969100,3234483,3993145,3089929,3072526,2866588,3357035,3328620,3992228,2911451,3855832,3707407,4100589,3341636,4125430,3192292,3174313,2961553,3468247,3438890,4124483,3007901]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N34","a":[0,0,0,0,32989631,0,0,15579528,18289210,0,0,0,0,0,0,21962023,0,0,28204959,0,0,0,0,0],"p":[3732192,3588526,3969100,3234483,3993145,3089929,3072526,2866588,3357035,3328620,3992228,2911451,3855832,3707407,4100589,3341636,4125430,3192292,3174313,2961553,3468247,3438890,4124483,3007901]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N56","a":[0,0,0,0,0,0,0,0,0,0,32751764,0,0,23503357,0,0,15631854,0,0,16085389,0,0,0,0],"p":[3732192,3588526,3969100,3234483,3993145,3089929,3072526,2866588,3357035,3328620,3992228,2911451,3855832,3707407,4100589,3341636,4125430,3192292,3174313,2961553,3468247,3438890,4124483,3007901]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P1","a":[31890928,0,23274333,0,0,20147052,24338635,0,0,0,0,17769775,0,0,0,0,0,0,0,24128084,0,0,0,0],"p":[5598288,5382789,5953650,4851725,5989718,4634893,4608790,4299883,5035553,4992929,5988342,4367176,5783748,5561110,6150883,5012453,6188145,4788438,4761470,4442329,5202371,5158335,6186724,4511852]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P2","a":[0,36748559,0,17790722,0,0,0,0,0,0,21834510,26654662,0,0,0,0,0,0,0,0,0,0,0,23892217],"p":[5598288,5382789,5953650,4851725,5989718,4634893,4608790,4299883,5035553,4992929,5988342,4367176,5783748,5561110,6150883,5012453,6188145,4788438,4761470,4442329,5202371,5158335,6186724,4511852]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P3","a":[0,0,34911499,26686082,0,30220578,16225757,0,0,0,0,0,0,0,0,0,0,0,0,0,38008097,35027228,38423782,0],"p":[5131764,4934223,5457513,4447415,5490575,4248652,4224724,3941559,4615924,4576852,5489314,4003245,5301769,5097684,5638310,4594749,5672467,4389402,4364681,4072135,4768840,4728474,5671164,4135865]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P4","a":[0,0,0,0,0,0,0,0,0,0,0,0,0,35255036,0,0,23447780,37076575,0,0,0,23351486,0,0],"p":[0,0,0,0,0,0,0,0,0,0,0,0,2891874,2780555,3075442,2506227,3094073,2394219,2380735,2221165,2601186,2579168,3093362,2255926]},{"km":"BD02","ten":"Phụ tùng thay thế","nhom":"Bảo dưỡng & sửa chữa","pt":"Phụ tùng thay thế","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"XU","a":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"p":[3265668,3139960,3472963,2830173,3494002,2703688,2688461,2508265,2937406,2912542,3493200,2547520,3373853,3243981,3588015,2923931,3609751,2793256,2777524,2591359,3034717,3009029,3608923,2631914]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C1","a":[0,22307211,0,0,0,0,0,0,0,0,0,0,0,23087964,0,0,0,0,0,0,0,0,0,0],"p":[0,16990871,0,0,0,0,0,0,0,0,0,0,0,18566461,0,0,0,0,0,0,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C2","a":[0,22307211,0,0,0,0,0,0,0,0,0,0,0,23087964,0,0,0,0,0,0,0,0,0,0],"p":[0,16990871,0,0,0,0,0,0,0,0,0,0,0,18566461,0,0,0,0,0,0,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C3","a":[0,20076490,0,0,0,0,0,0,0,0,0,0,0,20779167,0,0,0,0,0,0,0,0,0,0],"p":[0,15291784,0,0,0,0,0,0,0,0,0,0,0,16709815,0,0,0,0,0,0,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C4","a":[0,20076490,0,0,0,0,0,0,0,0,0,0,0,20779167,0,0,0,0,0,0,0,0,0,0],"p":[0,15291784,0,0,0,0,0,0,0,0,0,0,0,16709815,0,0,0,0,0,0,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N12","a":[0,0,0,0,0,0,0,28255801,0,0,0,0,0,0,0,0,0,0,0,29244754,0,0,0,0],"p":[0,0,0,0,0,0,0,27034729,0,0,0,0,0,0,0,0,0,0,0,29541702,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N34","a":[0,0,0,0,0,0,0,28255801,0,0,0,0,0,0,0,0,0,0,0,29244754,0,0,0,0],"p":[0,0,0,0,0,0,0,27034729,0,0,0,0,0,0,0,0,0,0,0,29541702,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"N56","a":[0,0,0,0,0,0,0,28255801,0,0,0,0,0,0,0,0,0,0,0,29244754,0,0,0,0],"p":[0,0,0,0,0,0,0,27034729,0,0,0,0,0,0,0,0,0,0,0,29541702,0,0,0,0]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P1","a":[8586828,0,8586828,8586828,8586828,8586828,8586828,0,8586828,8586828,8586828,8586828,7586777,0,7586777,7586777,7586777,7586777,7586777,0,7586777,7586777,7586777,7586777],"p":[7838342,0,7614667,8117971,8107090,6848147,8455256,0,8195908,8596313,8164095,7315831,7311759,0,7103111,7572602,7562453,6388086,7887229,0,7645304,8018809,7615628,6824351]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P2","a":[8586828,0,8586828,8586828,8586828,8586828,8586828,0,8586828,8586828,8586828,8586828,7586777,0,7586777,7586777,7586777,7586777,7586777,0,7586777,7586777,7586777,7586777],"p":[7838342,0,7614667,8117971,8107090,6848147,8455256,0,8195908,8596313,8164095,7315831,7311759,0,7103111,7572602,7562453,6388086,7887229,0,7645304,8018809,7615628,6824351]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P3","a":[7871259,0,7871259,7871259,7871259,7871259,7871259,0,7871259,7871259,7871259,7871259,6954545,0,6954545,6954545,6954545,6954545,6954545,0,6954545,6954545,6954545,6954545],"p":[7185147,0,6980112,7441473,7431499,6277468,7750652,0,7512916,7879953,7483753,6706178,6702446,0,6511185,6941552,6932249,5855746,7229960,0,7008195,7350575,6980992,6255655]},{"km":"BD03","ten":"Khuôn mẫu (khuôn thổi, khuôn ép)","nhom":"Bảo dưỡng & sửa chữa","pt":"Khuôn mẫu (khuôn thổi, khuôn ép)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P4","a":[0,0,0,0,0,0,0,0,0,0,0,0,3793388,0,3793388,3793388,3793388,3793388,3793388,0,3793388,3793388,3793388,3793388],"p":[0,0,0,0,0,0,0,0,0,0,0,0,3655879,0,3551556,3786301,3781226,3194043,3943615,0,3822652,4009405,3807814,3412175]},{"km":"BD04","ten":"Sửa chữa đột xuất","nhom":"Bảo dưỡng & sửa chữa","pt":"Sửa chữa đột xuất","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"C2","a":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,465000000,0,0,0,0],"p":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"km":"BD04","ten":"Sửa chữa đột xuất","nhom":"Bảo dưỡng & sửa chữa","pt":"Sửa chữa đột xuất","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P1","a":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,41000000,0],"p":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"km":"BD04","ten":"Sửa chữa đột xuất","nhom":"Bảo dưỡng & sửa chữa","pt":"Sửa chữa đột xuất","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"P3","a":[0,0,0,0,41000000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"p":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"km":"NL02","ten":"Điện văn phòng","nhom":"Hành chính (admin)","pt":"Điện văn phòng","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[10140000,10140000,10140000,11154000,11697400,11697400,10634000,10634000,10634000,10634000,10634000,10634000,10634000,10634000,10634000,11697400,11697400,11697400,10634000,10634000,10634000,10634000,10634000,10634000],"p":[9909781,10339855,9974509,11294596,11596368,11749995,10631176,10591777,10720424,10505104,10802788,10428698,10207074,10650051,10273744,11633434,11944259,12102495,10950112,10909530,11042037,10820257,11126872,10741559]},{"km":"NL03","ten":"Nước","nhom":"FOH sản xuất","pt":"Nước","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[18941841,17325189,18508099,18894050,19215185,19225585,19181249,20225053,20530741,20748928,20715830,19853985,20112427,18507662,19897501,20071207,20206993,20253674,20168756,20713335,21435953,22037206,21805412,20787939],"p":[17290741,13196183,16412698,17862399,18141651,15332744,18887344,19351029,19596069,20771847,19695981,16915256,18894139,14419886,17934674,19518807,19823955,16754573,20638797,21145480,21413243,22698053,21522420,18483834]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[104000000,104000000,104000000,104000000,104000000,104000000,104000000,104000000,104000000,104000000,104000000,104000000,109200000,109200000,109200000,109200000,109200000,109200000,109200000,109200000,109200000,109200000,109200000,109200000],"p":[101638776,106049798,102302654,105310921,103101742,104467617,103972384,103587063,104845226,102739403,105650738,101992161,106720715,111352288,107417787,110576467,108256829,109690998,109171003,108766416,110087487,107876373,110933275,107091769]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[41040000,41040000,41040000,41040000,41040000,41040000,41040000,41040000,41040000,41040000,41040000,41040000,43092000,43092000,43092000,43092000,43092000,43092000,43092000,43092000,43092000,43092000,43092000,43092000],"p":[37462674,31259190,36393643,38799137,38747135,32730126,40411165,39266460,39171634,41085332,39019583,34965379,40936647,34157903,39768482,42397042,42340218,35765241,44158555,42907700,42804080,44895239,42637930,38207773]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[56160000,56160000,56160000,56160000,56160000,56160000,56160000,56160000,56160000,56160000,56160000,56160000,58968000,58968000,58968000,58968000,58968000,58968000,58968000,58968000,58968000,58968000,58968000,58968000],"p":[51264712,42775733,49801827,53093556,53022396,44788593,55299489,53733051,53603288,56222033,53395219,47847361,56018569,46742394,54420028,58017005,57939245,48941909,60427497,58715800,58574005,61435590,58346641,52284321]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[40950000,40950000,40950000,40950000,40950000,40950000,40950000,40950000,40950000,40950000,40950000,40950000,42997500,42997500,42997500,42997500,42997500,42997500,42997500,42997500,42997500,42997500,42997500,42997500],"p":[40020268,41757108,40281670,41466175,40596311,41134124,40939126,40787406,41282808,40453640,41599978,40159413,42021282,43844963,42295754,43539484,42626126,43190830,42986082,42826776,43346948,42476322,43679977,42167384]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[102300000,102300000,102300000,102300000,102300000,102300000,102300000,102300000,102300000,102300000,102300000,102300000,107415000,107415000,116366250,125317500,125317500,125317500,125317500,125317500,125317500,125317500,125317500,125317500],"p":[99977373,104316292,100630399,103589493,101416425,102759973,102272835,101893812,103131410,101060008,103923755,100324981,104976242,109532106,105661919,108768967,106487246,107897972,107386477,106988503,108287980,106113009,109119943,105341231]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[73040000,73040000,73040000,73040000,73040000,73040000,73040000,73040000,73040000,73040000,73040000,73040000,76692000,76692000,76692000,76692000,76692000,76692000,76692000,76692000,76692000,76692000,76692000,76692000],"p":[66673337,55632827,64770752,69051876,68959326,58250691,71920845,69883583,69714818,73120678,69444209,62228832,72856060,60791746,70777045,75455164,75354033,63652369,78590177,76363997,76179581,79901273,75883879,67999409]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[63140000,63140000,63140000,63140000,63140000,63140000,63140000,63140000,63140000,63140000,63140000,63140000,66297000,66297000,66297000,66297000,66297000,66297000,66297000,66297000,66297000,66297000,66297000,66297000],"p":[57636288,48092233,55991584,59692435,59612430,50355266,62172538,60411411,60265520,63209743,60031590,53794201,62980991,52551901,61183771,65227808,65140384,55024789,67937894,66013455,65854036,69071281,65598413,58782622]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[55440000,55440000,55440000,55440000,55440000,55440000,55440000,60060000,64680000,64680000,64680000,64680000,77616000,87318000,87318000,87318000,87318000,87318000,87318000,87318000,87318000,87318000,87318000,87318000],"p":[50607473,42227326,49163342,52412870,52342621,44214380,54590521,57464513,61735411,64751444,61495775,55106255,55300383,46143132,53722336,57273197,57196434,48314449,59652785,62793287,67460232,70755946,67198375,60216344]},{"km":"NS01","ten":"Lương thường (cơ bản, phụ cấp)","nhom":"Nhân sự","pt":"Lương","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[71400000,71400000,71400000,71400000,71400000,71400000,71400000,71400000,71400000,71400000,71400000,71400000,74970000,74970000,74970000,74970000,74970000,74970000,74970000,74970000,74970000,74970000,74970000,74970000],"p":[69778929,72807265,70234707,72299998,70783311,71721037,71381040,71116503,71980280,70534551,72533295,70021541,73267876,76447629,73746442,75914998,74322477,75307089,74950093,74672328,75579294,74061279,76159960,73522618]},{"km":"NS02","ten":"Tăng ca","nhom":"Nhân sự","pt":"Tăng ca (OT)","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[4788462,4788462,4668750,4608894,4608894,4908173,4788462,4668750,4608894,4908173,4608894,4848317,4965036,5090733,4965036,5279279,5216430,4965036,5153582,5153582,5153582,25642212,4965036,4839339],"p":[4371067,3647257,4140176,4357240,4351400,3914355,4715091,4466990,4399072,4913594,4381996,4130683,4776403,3985473,4524101,4761293,4754912,4277339,5152329,4881221,4807005,5369240,4788345,4513728]},{"km":"NS02","ten":"Tăng ca","nhom":"Nhân sự","pt":"Tăng ca (OT)","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[3962019,4139423,4021154,4021154,4198558,4021154,4021154,4080288,4080288,4080288,3962019,4198558,4470577,4408486,4222212,4532668,4408486,4532668,4346394,4284303,4160120,4532668,4346394,4408486],"p":[3616662,3152900,3565898,3801591,3963989,3206941,3959540,3903959,3894531,4084795,3766967,3577100,3952041,3445273,3896569,4154119,4331576,3504326,4326714,4265979,4255677,4463584,4116284,3908810]},{"km":"NS02","ten":"Tăng ca","nhom":"Nhân sự","pt":"Tăng ca (OT)","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[3634615,3695192,3513462,3634615,3816346,3755769,3695192,24351923,39375000,60395192,56821154,15992308,5279279,5788125,5978942,5724519,5851731,5978942,5660913,5470096,5978942,5851731,5724519,5851731],"p":[3317797,2814540,3115684,3436158,3603130,2995292,3638572,23299557,37582433,60461903,54023824,13625173,3625462,3075536,3404607,3754798,3937254,3273050,3975983,25460161,41067511,66068630,59033537,14888657]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[8666667,8666667,8666667,8666667,8666667,8666667,8666667,8666667,8666667,8666667,8666667,8666667,9099996,9100000,9100000,9100000,9100000,9100000,9100000,9100000,9100000,9100000,9100000,9100000],"p":[8469898,8837484,8525222,8775910,8591812,8705635,8664366,8632256,8737103,8561617,8804229,8499347,8893393,9279358,8951483,9214706,9021403,9140917,9097584,9063868,9173958,8989698,9244440,8924314]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[3166667,3166667,3166667,3166667,3166667,3166667,3166667,3166667,3166667,3166667,3166667,3166667,3324996,3325000,3325000,3325000,3325000,3325000,3325000,3325000,3325000,3325000,3325000,3325000],"p":[2890639,2411975,2808152,2993761,2989748,2525473,3118146,3029820,3022503,3170165,3010771,2697946,3158692,2635641,3068556,3271377,3266992,2759664,3407296,3310780,3302784,3464139,3289964,2948131]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[4333333,4333333,4333333,4333333,4333333,4333333,4333333,4333333,4333333,4333333,4333333,4333333,4550004,4550000,4550000,4550000,4550000,4550000,4550000,4550000,4550000,4550000,4550000,4550000],"p":[3955610,3300596,3842733,4096725,4091234,3455910,4266936,4146068,4136056,4338119,4120001,3691926,4322420,3606666,4199076,4476620,4470620,3776382,4662615,4530540,4519599,4740400,4502055,4034284]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[3250000,3250000,3250000,3250000,3250000,3250000,3250000,3250000,3250000,3250000,3250000,3250000,3412500,3412500,3412500,3412500,3412500,3412500,3412500,3412500,3412500,3412500,3412500,3412500],"p":[3176212,3314056,3196958,3290966,3221929,3264613,3249137,3237096,3276413,3210606,3301586,3187255,3335022,3479759,3356806,3455515,3383026,3427844,3411594,3398950,3440234,3371137,3466665,3346618]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[7750000,7750000,7750000,7750000,7750000,7750000,7750000,7750000,7750000,7750000,7750000,7750000,8137500,8137500,8815625,9493750,9493750,9493750,9493750,9493750,9493750,9493750,9493750,9493750],"p":[7574043,7902749,7623515,7847689,7683062,7784846,7747942,7719228,7812986,7656061,7873012,7600377,7952746,8297887,8004691,8240073,8067216,8174089,8135339,8105190,8203635,8038864,8266662,7980396]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[5533333,5533333,5533333,5533333,5533333,5533333,5533333,5533333,5533333,5533333,5533333,5533333,5810004,5810000,5810000,5810000,5810000,5810000,5810000,5810000,5810000,5810000,5810000,5810000],"p":[5051010,4214608,4906875,5231202,5224191,4412931,5448549,5294211,5281425,5539445,5260925,4714305,5519398,4605435,5361897,5716300,5708638,4822149,5953801,5785151,5771180,6053126,5748778,5151470]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[4783333,4783333,4783333,4783333,4783333,4783333,4783333,4783333,4783333,4783333,4783333,4783333,5022504,5022500,5022500,5022500,5022500,5022500,5022500,5022500,5022500,5022500,5022500,5022500],"p":[4366385,3643351,4241786,4522154,4516093,3814793,4710040,4576622,4565569,4788617,4547847,4075318,4771287,3981204,4635134,4941500,4934877,4168544,5146810,5001019,4988942,5232672,4969576,4453229]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[4200000,4200000,4200000,4200000,4200000,4200000,4200000,4550000,4900000,4900000,4900000,4900000,11130000,6615000,6615000,6615000,6615000,6615000,6615000,6615000,6615000,6615000,6615000,6615000],"p":[3833899,3199040,3724496,3970672,3965350,3349574,4135646,4353372,4676925,4905412,4658771,4174716,4189423,3495692,4069874,4338879,4333063,3660186,4519150,4757067,5110624,5360299,5090786,4561844]},{"km":"NS03","ten":"Lương tháng 13","nhom":"Nhân sự","pt":"Thưởng trích trước: lương tháng 13","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[5666667,5666667,5666667,5666667,5666667,5666667,5666667,5666667,5666667,5666667,5666667,5666667,5949996,5950000,5950000,5950000,5950000,5950000,5950000,5950000,5950000,5950000,5950000,5950000],"p":[5538011,5778355,5574183,5738095,5617723,5692146,5665162,5644167,5712721,5597981,5756611,5557266,5814911,6067272,5852893,6025000,5898610,5976753,5948420,5926376,5998357,5877880,6044442,5835129]},{"km":"NS04","ten":"Sales incentive","nhom":"Nhân sự","pt":"Thưởng trích trước: sales incentive","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[16446661,15538864,15291908,16328276,17548323,17804716,16836153,15487011,15006657,15886749,17253886,17730796,17140626,15661694,16695435,16744439,18922610,19259326,21865583,19947188,21351823,21522538,22402241,22846497],"p":[15500000,15500000,15500000,15500000,15500000,15500000,15500000,15500000,15500000,15500000,15500000,15500000,16275000,16275000,17631250,18987500,18987500,18987500,18987500,18987500,18987500,18987500,18987500,18987500]},{"km":"NS05","ten":"Performance bonus","nhom":"Nhân sự","pt":"Thưởng trích trước: performance bonus","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,28600000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,-62790000],"p":[13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13000000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000,13650000]},{"km":"NS05","ten":"Performance bonus","nhom":"Nhân sự","pt":"Thưởng trích trước: performance bonus","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,10725000,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,-23546250],"p":[4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,4875000,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750,5118750]},{"km":"NS05","ten":"Performance bonus","nhom":"Nhân sự","pt":"Thưởng trích trước: performance bonus","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,18700000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,-41055000],"p":[8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8500000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000,8925000]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,21996000,23782000,23782000,23782000,23782000,23782000,23782000],"p":[21496601,22429532,21637011,22273260,21806018,22094901,21990159,21908664,22174765,21729384,22345131,21571342,22571431,23551009,22718862,23386923,22896319,23199646,23089667,23004097,23283504,22815853,23462388,22649909]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[8930000,8930000,8930000,8930000,8930000,8930000,8930000,8930000,8930000,8930000,8930000,8930000,9376500,9376500,9376500,9376500,9376500,9376500,9376500,9376500,9376500,9376500,9376500,9376500],"p":[8151600,6801768,7918987,8442405,8431090,7121833,8793170,8544091,8523457,8939864,8490372,7608207,8907511,7432507,8653327,9225282,9212918,7782252,9608575,9336398,9313851,9768871,9277698,8313728]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[12220000,12220000,12220000,12220000,12220000,12220000,12220000,12220000,12220000,12220000,12220000,12220000,12831000,12831000,12831000,12831000,12831000,12831000,12831000,12831000,12831000,12831000,12831000,12831000],"p":[11154822,9307683,10836509,11552765,11537281,9745666,12032759,11691914,11663678,12233498,11618404,10411231,12189226,10170799,11841395,12624070,12607151,10649397,13148576,12776123,12745270,13367929,12695797,11376681]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[9165000,9165000,9165000,9165000,9165000,9165000,9165000,9165000,9165000,9165000,9165000,9165000,9623250,9623250,9623250,9623250,9623250,9623250,9623250,9623250,9623250,9623250,9623250,9623250],"p":[8956917,9345638,9015421,9280525,9085841,9206209,9162566,9128610,9239486,9053910,9310471,8988059,9404763,9812920,9466192,9744551,9540133,9666519,9620695,9585040,9701460,9506605,9775995,9437462]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[21855000,21855000,21855000,21855000,21855000,21855000,21855000,21855000,21855000,21855000,21855000,21855000,22947750,22947750,24860063,26772375,26772375,26772375,26772375,26772375,26772375,26772375,26772375,26772375],"p":[21358802,22285753,21498313,22130483,21666236,21953267,21849197,21768224,22032619,21590093,22201893,21433064,22426743,23400041,22573228,23237007,22749548,23050930,22941656,22856635,23134250,22669597,23311988,22504717]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[15604000,15604000,15604000,15604000,15604000,15604000,15604000,15604000,15604000,15604000,15604000,15604000,16384200,16384200,16384200,16384200,16384200,16384200,16384200,16384200,16384200,16384200,16384200,16384200],"p":[14243849,11885195,13837388,14751992,14732220,12444466,15364908,14929675,14893620,15621236,14835808,13294341,15564704,12987327,15120551,16119967,16098361,13598461,16789720,16314127,16274729,17069817,16211556,14527146]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[13489000,13489000,13489000,13489000,13489000,13489000,13489000,13489000,13489000,13489000,13489000,13489000,14163450,14163450,14163450,14163450,14163450,14163450,14163450,14163450,14163450,14163450,14163450,14163450],"p":[12313207,10274250,11961838,12752475,12735383,10757716,13282315,12906074,12874907,13503900,12824931,11492398,13455030,11226997,13071078,13935032,13916355,11755296,14514005,14102875,14068817,14756137,14014206,12558106]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[11844000,11844000,11844000,11844000,11844000,11844000,11844000,12831000,13818000,13818000,13818000,13818000,16581600,18654300,18654300,18654300,18654300,18654300,18654300,18654300,18654300,18654300,18654300,18654300],"p":[10811596,9021292,10503078,11197295,11182287,9445799,11662520,12276510,13188929,13833263,13137734,11772700,11814173,9857851,11477044,12235638,12219238,10321723,12744004,13414929,14411959,15116043,14356016,12864401]},{"km":"NS06","ten":"BH theo luật phần doanh nghiệp","nhom":"Nhân sự","pt":"BH bắt buộc (phần DN)","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[15980000,15980000,15980000,15980000,15980000,15980000,15980000,15980000,15980000,15980000,15980000,15980000,16779000,16779000,16779000,16779000,16779000,16779000,16779000,16779000,16779000,16779000,16779000,16779000],"p":[15617189,16294959,15719196,16181428,15841979,16051851,15975757,15916551,16109872,15786304,16233642,15671488,16398048,17109707,16505156,16990499,16634078,16854444,16774545,16712378,16915366,16575620,17045324,16455062]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000,5000000],"p":[4886480,5098548,4918397,5063025,4956815,5022482,4998672,4980147,5040636,4939394,5079362,4903469,5130804,5353475,5164317,5316176,5204655,5273606,5248606,5229155,5292668,5186364,5333331,5148643]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000],"p":[2190800,1828023,2128283,2268955,2265914,1914042,2363226,2296284,2290739,2402651,2281847,2044759,2393956,1997538,2325642,2479359,2476036,2091535,2582372,2509222,2503163,2625453,2493446,2234373]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000],"p":[2190800,1828023,2128283,2268955,2265914,1914042,2363226,2296284,2290739,2402651,2281847,2044759,2393956,1997538,2325642,2479359,2476036,2091535,2582372,2509222,2503163,2625453,2493446,2234373]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000],"p":[1759133,1835477,1770623,1822689,1784453,1808093,1799522,1792853,1814629,1778182,1828570,1765249,1847089,1927251,1859154,1913823,1873676,1898498,1889498,1882496,1905360,1867091,1919999,1853511]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000,3600000],"p":[3518265,3670955,3541246,3645378,3568906,3616187,3599044,3585706,3629258,3556364,3657141,3530498,3694179,3854502,3718308,3827647,3747352,3796996,3778996,3764991,3810721,3734182,3839998,3707023]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000],"p":[2190800,1828023,2128283,2268955,2265914,1914042,2363226,2296284,2290739,2402651,2281847,2044759,2393956,1997538,2325642,2479359,2476036,2091535,2582372,2509222,2503163,2625453,2493446,2234373]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000],"p":[1916950,1599520,1862248,1985336,1982675,1674787,2067823,2009249,2004396,2102320,1996616,1789164,2094711,1747846,2034937,2169439,2166532,1830093,2259575,2195569,2190267,2297271,2181765,1955076]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,1800000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000,2100000],"p":[1643100,1371017,1596212,1701717,1699436,1435532,1772420,1722213,1718054,1801988,1711385,1533569,1795467,1498154,1744232,1859519,1857027,1568651,1936779,1881917,1877372,1969089,1870085,1675780]},{"km":"NS07","ten":"BH sức khoẻ cao cấp theo HĐLĐ","nhom":"Nhân sự","pt":"BH sức khoẻ cao cấp","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000,2400000],"p":[2345510,2447303,2360830,2430252,2379271,2410791,2399363,2390471,2419505,2370909,2438094,2353665,2462786,2569668,2478872,2551765,2498235,2531331,2519331,2509994,2540480,2489455,2559999,2471349]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[1560000,1560000,1560000,1560000,1560000,1560000,1560000,1560000,1560000,1560000,1560000,1560000,1664000,1664000,1664000,1664000,1664000,1664000,1664000,1664000,1664000,1664000,1664000,1664000],"p":[1524582,1590747,1534540,1579664,1546526,1567014,1559586,1553806,1572678,1541091,1584761,1529882,1600811,1670284,1611267,1658647,1623852,1645365,1637565,1631496,1651312,1618146,1663999,1606377]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000],"p":[4381599,3656046,4256566,4537911,4531829,3828085,4726452,4592568,4581478,4805302,4563694,4089518,4787912,3995076,4651284,4958718,4952072,4183069,5164743,5018444,5006325,5250905,4986892,4468745]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,4800000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000,5008000],"p":[4381599,3656046,4256566,4537911,4531829,3828085,4726452,4592568,4581478,4805302,4563694,4089518,4787912,3995076,4651284,4958718,4952072,4183069,5164743,5018444,5006325,5250905,4986892,4468745]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[2340000,2340000,2340000,2340000,2340000,2340000,2340000,2340000,2340000,2340000,2340000,2340000,2496000,2496000,2496000,2496000,2496000,2496000,2496000,2496000,2496000,2496000,2496000,2496000],"p":[2286872,2386120,2301810,2369496,2319789,2350521,2339379,2330709,2359018,2311637,2377142,2294824,2401216,2505426,2416900,2487971,2435779,2468047,2456348,2447244,2476968,2427218,2495999,2409565]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[4680000,4680000,4680000,4680000,4680000,4680000,4680000,4680000,4680000,4680000,4680000,4680000,4992000,4992000,5408000,5824000,5824000,5824000,5824000,5824000,5824000,5824000,5824000,5824000],"p":[4573745,4772241,4603619,4738991,4639578,4701043,4678757,4661418,4718035,4623273,4754283,4589647,4802432,5010853,4833800,4975941,4871557,4936095,4912695,4894489,4953937,4854437,4991997,4819130]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[9600000,9600000,9600000,9600000,9600000,9600000,9600000,9600000,9600000,9600000,9600000,9600000,10016000,10016000,10016000,10016000,10016000,10016000,10016000,10016000,10016000,10016000,10016000,10016000],"p":[8763199,7312091,8513133,9075822,9063657,7656170,9452904,9185137,9162955,9610604,9127388,8179036,9575824,7990153,9302569,9917437,9904144,8366138,10329487,10036889,10012650,10501810,9973785,8937491]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[8400000,8400000,8400000,8400000,8400000,8400000,8400000,8400000,8400000,8400000,8400000,8400000,8764000,8764000,8764000,8764000,8764000,8764000,8764000,8764000,8764000,8764000,8764000,8764000],"p":[7667799,6398080,7448991,7941344,7930700,6699149,8271291,8036995,8017586,8409278,7986464,7156656,8378846,6991384,8139748,8677757,8666126,7320371,9038301,8782278,8761069,9189084,8727062,7820304]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[7200000,7200000,7200000,7200000,7200000,7200000,7200000,7800000,8400000,8400000,8400000,8400000,10016000,11268000,11268000,11268000,11268000,11268000,11268000,11268000,11268000,11268000,11268000,11268000],"p":[6572399,5484068,6384850,6806866,6797743,5742127,7089678,7462924,8017586,8409278,7986464,7156656,7181868,5992615,6976927,7438078,7428108,6274604,7747115,8154972,8761069,9189084,8727062,7820304]},{"km":"NS08","ten":"Phúc lợi: ăn ca, đưa đón","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[3120000,3120000,3120000,3120000,3120000,3120000,3120000,3120000,3120000,3120000,3120000,3120000,3328000,3328000,3328000,3328000,3328000,3328000,3328000,3328000,3328000,3328000,3328000,3328000],"p":[3049163,3181494,3069080,3159328,3093052,3134029,3119172,3107612,3145357,3082182,3169522,3059765,3201621,3340569,3222534,3317294,3247705,3290730,3275130,3262992,3302625,3236291,3327998,3212753]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"BGD","bp_ten":"Ban giám đốc","may":"","a":[2400000,0,900000,1000000,0,7000000,0,0,1900000,0,0,0,0,2400000,900000,1000000,0,7000000,0,0,1900000,0,0,0],"p":[2345510,0,885311,1012605,0,7031474,0,0,1915442,0,0,0,2462786,0,929577,1063235,0,7383048,0,0,2011214,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[4800000,0,1800000,2000000,0,14000000,0,0,3800000,0,0,0,0,4800000,1800000,2000000,0,14000000,0,0,3800000,0,0,0],"p":[4381599,0,1596212,1890796,0,11165248,0,0,3627003,0,0,0,4787912,0,1744232,2066133,0,12200618,0,0,3963341,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[4800000,0,1800000,2000000,0,14000000,0,0,3800000,0,0,0,0,4800000,1800000,2000000,0,14000000,0,0,3800000,0,0,0],"p":[4381599,0,1596212,1890796,0,11165248,0,0,3627003,0,0,0,4787912,0,1744232,2066133,0,12200618,0,0,3963341,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[3600000,0,1350000,1500000,0,10500000,0,0,2850000,0,0,0,0,3600000,1350000,1500000,0,10500000,0,0,2850000,0,0,0],"p":[3518265,0,1327967,1518908,0,10547211,0,0,2873162,0,0,0,3694179,0,1394366,1594853,0,11074572,0,0,3016821,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SALES","bp_ten":"Kinh doanh","may":"","a":[7200000,0,2700000,3000000,0,21000000,0,0,5700000,0,0,0,0,7200000,2925000,3500000,0,24500000,0,0,6650000,0,0,0],"p":[7036531,0,2655934,3037815,0,21094423,0,0,5746325,0,0,0,7388357,0,2788731,3189706,0,22149144,0,0,6033641,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SX-CHAI","bp_ten":"Tổ sản xuất Chai","may":"","a":[9600000,0,3600000,4000000,0,28000000,0,0,7600000,0,0,0,0,9600000,3600000,4000000,0,28000000,0,0,7600000,0,0,0],"p":[8763199,0,3192425,3781592,0,22330495,0,0,7254006,0,0,0,9575824,0,3488463,4132265,0,24401237,0,0,7926682,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SX-NAP","bp_ten":"Tổ sản xuất Nắp","may":"","a":[8400000,0,3150000,3500000,0,24500000,0,0,6650000,0,0,0,0,8400000,3150000,3500000,0,24500000,0,0,6650000,0,0,0],"p":[7667799,0,2793372,3308893,0,19539183,0,0,6347255,0,0,0,8378846,0,3052405,3615732,0,21351082,0,0,6935846,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"SX-PHOI","bp_ten":"Tổ sản xuất Phôi","may":"","a":[7200000,0,2700000,3000000,0,21000000,0,0,6650000,0,0,0,0,10800000,4050000,4500000,0,31500000,0,0,8550000,0,0,0],"p":[6572399,0,2394319,2836194,0,16747871,0,0,6347255,0,0,0,7181868,0,2616348,3099199,0,18300928,0,0,6935846,0,0,0]},{"km":"NS09","ten":"Phúc lợi: đồng phục, du lịch, quà lễ","nhom":"Nhân sự","pt":"Phúc lợi & khác","bp":"TCKT","bp_ten":"Tài chính kế toán","may":"","a":[4800000,0,1800000,2000000,0,14000000,0,0,3800000,0,0,0,0,4800000,1800000,2000000,0,14000000,0,0,3800000,0,0,0],"p":[4691020,0,1770623,2025210,0,14062948,0,0,3830883,0,0,0,4925571,0,1859154,2126471,0,14766096,0,0,4022427,0,0,0]},{"km":"OH01","ten":"Bảo hiểm tài sản nhà máy","nhom":"FOH sản xuất","pt":"Bảo hiểm tài sản nhà máy","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[19000000,19000000,19000000,19000000,19000000,19000000,19000000,19000000,19000000,19000000,19000000,19000000,20000000,20000000,20000000,20000000,20000000,20000000,20000000,20000000,20000000,20000000,20000000,20000000],"p":[17343831,14471847,16848909,17962564,17938489,15152836,18708873,18178917,18135016,19020987,18064622,16187675,18952151,15813844,18411334,19628260,19601953,16557982,20443776,19864676,19816704,20784833,19739782,17688784]},{"km":"OH02","ten":"Tu sửa nhỏ","nhom":"FOH sản xuất","pt":"Tu sửa nhỏ","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[33939334,26237813,30541730,29088141,26395122,33263018,25659391,20808619,22879515,24019415,23252544,28035382,27242203,31963392,33006962,35673437,28896898,20705082,20259876,19893165,19837028,20392908,27794030,20091521],"p":[30980951,19984717,27083938,27499873,24920452,26527845,25266225,19909376,21837914,24045946,22107811,23885667,33853863,21837931,29595474,30049979,27231365,28987813,27609202,21755604,23862978,26275764,24157903,26100622]},{"km":"OH04","ten":"Xử lý chất thải, quan trắc môi trường","nhom":"FOH sản xuất","pt":"Xử lý chất thải, quan trắc môi trường","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[16000000,16000000,16000000,16000000,16000000,38000000,16000000,16000000,16000000,16000000,16000000,38000000,16560000,16560000,16560000,16560000,16560000,39330000,16560000,16560000,16560000,16560000,16560000,39330000],"p":[14605331,12186819,14188555,15126369,15106096,30305672,15754840,15308561,15271592,16017673,15212313,32375351,15959706,13316921,15504282,16529061,16506907,33115964,17215811,16728148,16687751,17503017,16622975,35377568]},{"km":"OH05","ten":"An ninh, vệ sinh","nhom":"FOH sản xuất","pt":"An ninh, vệ sinh","bp":"NSHC","bp_ten":"Nhân sự hành chính","may":"","a":[27000000,27000000,27000000,27000000,27000000,27000000,27000000,27000000,27000000,27000000,27000000,27000000,27945000,27945000,27945000,27945000,27945000,27945000,27945000,27945000,27945000,27945000,27945000,27945000],"p":[24646496,20565256,23943186,25525748,25491536,21532977,26586293,25833197,25770812,27029823,25670778,23003539,26932004,22472305,26163475,27892791,27855406,23529764,29051681,28228750,28160579,29536341,28051270,25136693]},{"km":"OH06","ten":"Công cụ dụng cụ phân bổ","nhom":"FOH sản xuất","pt":"Công cụ dụng cụ phân bổ","bp":"KT-BT","bp_ten":"Kỹ thuật & bảo trì","may":"","a":[8000000,8000000,8000000,8000000,8000000,8000000,8000000,8000000,8000000,8000000,8000000,8000000,9000000,9000000,9000000,9000000,9000000,9000000,9000000,9000000,9000000,9000000,9000000,9000000],"p":[7302666,6093409,7094277,7563185,7553048,6380141,7877420,7654281,7635796,8008837,7606156,6815863,7979853,6658461,7752141,8264531,8253454,6971782,8607905,8364074,8343875,8751509,8311487,7447909]},{"km":"VC04","ten":"Thuê kho ngoài","nhom":"FOH sản xuất","pt":"Thuê kho ngoài","bp":"KHO-QC","bp_ten":"Kho & QC","may":"","a":[38000000,38000000,38000000,38000000,38000000,38000000,38000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000,52000000],"p":[37137245,38748965,37379816,38478990,37671790,38170860,37989910,51793531,52422613,51369701,52825369,50996081,38251363,39911434,38501210,39633360,38801944,39315986,39129607,53347337,53995291,52910792,54410130,52525963]}],"machines":[{"c":"P1","ten":"Máy ép phôi số 1","nhom":"Phôi","tu":0},{"c":"P2","ten":"Máy ép phôi số 2","nhom":"Phôi","tu":0},{"c":"P3","ten":"Máy ép phôi số 3","nhom":"Phôi","tu":0},{"c":"P4","ten":"Máy ép phôi PET mới","nhom":"Phôi","tu":12},{"c":"C1","ten":"Máy thổi chai số 1","nhom":"Chai","tu":0},{"c":"C2","ten":"Máy thổi chai số 2","nhom":"Chai","tu":0},{"c":"C3","ten":"Máy thổi chai số 3","nhom":"Chai","tu":0},{"c":"C4","ten":"Máy thổi chai số 4","nhom":"Chai","tu":0},{"c":"N12","ten":"Máy ép nắp số 1–2","nhom":"Nắp","tu":0},{"c":"N34","ten":"Máy ép nắp số 3–4","nhom":"Nắp","tu":0},{"c":"N56","ten":"Máy ép nắp số 5–6","nhom":"Nắp","tu":0},{"c":"XU","ten":"Khí nén, chiller, nhà xưởng","nhom":"Chung","tu":0}],"notes":{"may":"Sổ chi phí v3 chưa có cột Máy: chi phí bảo dưỡng được gán cho từng máy theo quy tắc của bản demo (đại tu luân phiên theo quý, khuôn theo dây chuyền, phụ tùng 2 máy/tháng, sửa đột xuất 1 máy; T8/26 máy thổi chai số 2 theo chứng từ). Số tiền từng khoản mục giữ nguyên.","dien":"Kế hoạch điện, vật tư tiêu hao, vận chuyển NVL dùng định mức cả năm. Điện: định mức kWh/tấn cả năm của từng nhóm (kWh/tấn thực tế 2025, nhân hệ số để tổng kWh cả năm khớp ngân sách) × tấn kế hoạch tháng × giá điện tháng. Ngân sách v3 chia điện theo cơ cấu tháng 2025 nên không dùng trực tiếp từng tháng.","carton":"Ngân sách v3 không tách bao bì: kế hoạch carton = tấn kế hoạch × số thùng carton/tấn năm 2025 × giá carton bình quân 2025 (2026: +3%). Hàng gia công dùng carton khách cấp, không tính tiền."}}</script>
+<script>/* Báo cáo quản trị Biến phí và định phí – engine: mọi con số trên trang do file này tính từ data.json.
+   Không vẽ, không đụng DOM. Chạy được trong Node (kiểm thử) và trình duyệt. */
+(function (root) {
+  'use strict';
+  const CATS = ['Nhân sự', 'FOH sản xuất', 'Bảo dưỡng & sửa chữa', 'Hành chính (admin)'];
+  const BY = { 'Nhân sự': ['pt', 'bp'], 'FOH sản xuất': ['km', 'bp'], 'Bảo dưỡng & sửa chữa': ['may', 'km'], 'Hành chính (admin)': ['km', 'bp'] };
+  const BY_NAME = { pt: 'Phần tử', km: 'Khoản mục', bp: 'Bộ phận', may: 'Máy' };
+  const TOPN = { km: true, bp: false, pt: false, may: false };   // nhóm theo khoản mục: 5 khoản lớn nhất + "Khác" khi có hơn 6 khoản
+  const sum = a => a.reduce((s, x) => s + x, 0);
+  const range = (a, b) => { const o = []; for (let i = a; i <= b; i++) o.push(i); return o; };
+
+  function make(D) {
+    const NT = D.months.length, G = D.groups, CUT = D.cutoff;
+    const isFc = t => t > CUT;
+    const label = t => D.months[t];
+    const V = Object.fromEntries(D.var.map(v => [v.k, v]));
+    const VKEYS = D.var.map(v => v.k);
+    const mName = Object.fromEntries(D.machines.map(m => [m.c, m.ten]));
+
+    // ---------- kỳ ----------
+    // m: tháng a so với tháng b · ytd: lũy kế đầu năm tới a so với cùng kỳ năm trước · c: khoảng a–b so với c–d
+    function period(mode, a, b, c, d) {
+      let cur, base;
+      if (mode === 'm') { cur = [a]; base = b == null ? null : [b]; }
+      else if (mode === 'ytd') { cur = range(Math.floor(a / 12) * 12, a); base = cur.map(x => x - 12); if (base[0] < 0) base = null; }
+      else { cur = range(Math.min(a, b), Math.max(a, b)); base = range(Math.min(c, d), Math.max(c, d)); }
+      const name = ts => ts.length === 1 ? label(ts[0]) : label(ts[0]) + '–' + label(ts[ts.length - 1]);
+      const norm = !!base && base.length !== cur.length;
+      return { mode, cur, base, curName: name(cur), baseName: base ? name(base) : '—', norm, k: base ? cur.length / base.length : 1,
+        next: cur[cur.length - 1] + 1 < NT ? cur[cur.length - 1] + 1 : null, hasFc: cur.some(isFc) || (base || []).some(isFc) };
+    }
+    // giá trị kỳ gốc đã quy về cùng số tháng với kỳ phân tích (khi hai khoảng khác độ dài)
+    const baseVal = (P, f) => P.base ? f(P.base) * P.k : null;
+
+    // ---------- sản lượng ----------
+    const gs = g => g ? [g] : G;
+    const kg = (g, ts) => sum(gs(g).map(x => sum(ts.map(t => D.prod[x][t]))));
+    const kgPlan = (g, ts) => sum(gs(g).map(x => sum(ts.map(t => D.plan_prod[x][t]))));
+
+    // ---------- biến phí ----------
+    const ks = k => k ? [k] : VKEYS;
+    const vAmt = (k, g, ts) => sum(ks(k).map(kk => sum(gs(g).map(x => sum(ts.map(t => V[kk].a[x][t]))))));
+    const vPlan = (k, g, ts) => sum(ks(k).map(kk => sum(gs(g).map(x => sum(ts.map(t => V[kk].p[x][t]))))));
+    const vQ = (k, g, ts) => sum(gs(g).map(x => sum(ts.map(t => V[k].q[x][t]))));
+    const vQp = (k, g, ts) => sum(gs(g).map(x => sum(ts.map(t => V[k].qp[x][t]))));
+    const div = (a, b) => b ? a / b : null;
+    const perTon = (k, g, ts) => div(vAmt(k, g, ts), kg(g, ts) / 1000);            // đ / tấn SX
+    const perTonPlan = (k, g, ts) => div(vPlan(k, g, ts), kgPlan(g, ts) / 1000);
+    const qPerTon = (k, g, ts) => div(vQ(k, g, ts), kg(g, ts) / 1000);              // kWh / tấn, thùng / tấn
+    const qPerTonPlan = (k, g, ts) => div(vQp(k, g, ts), kgPlan(g, ts) / 1000);
+    const unitPrice = (k, g, ts) => div(vAmt(k, g, ts), vQ(k, g, ts));             // đ / kWh, đ / thùng
+
+    // bảng biến phí/tấn: phần tử × nhóm
+    function varTable(P) {
+      const cell = (k, g) => {
+        const c = perTon(k, g, P.cur), b = P.base ? perTon(k, g, P.base) : null, p = perTonPlan(k, g, P.cur);
+        return { c, b, p, d: b == null ? null : c - b, dp: p == null ? null : c - p, amt: vAmt(k, g, P.cur) };
+      };
+      const groups = G.concat([null]);
+      return {
+        rows: VKEYS.map(k => ({ k, name: V[k].ten, cells: groups.map(g => cell(k, g)) })),
+        total: groups.map(g => cell(null, g)),
+        tons: groups.map(g => ({ c: kg(g, P.cur) / 1000, b: P.base ? kg(g, P.base) / 1000 : null, p: kgPlan(g, P.cur) / 1000 })),
+        groups,
+      };
+    }
+    // tách thay đổi chi phí/tấn của điện hoặc carton thành lượng/tấn và đơn giá; nhân với tấn kỳ này ra tiền
+    function unitBridge(k, g, P) {
+      const u1 = qPerTon(k, g, P.cur), p1 = unitPrice(k, g, P.cur), t1 = kg(g, P.cur) / 1000;
+      const up = qPerTonPlan(k, g, P.cur), cp = perTonPlan(k, g, P.cur);
+      const o = { u1, p1, c1: perTon(k, g, P.cur), t1, up, pp: div(cp, up), cp };
+      if (P.base) {
+        const u0 = qPerTon(k, g, P.base), p0 = unitPrice(k, g, P.base);
+        Object.assign(o, { u0, p0, c0: perTon(k, g, P.base), effQ: (u1 - u0) * p0, effP: u1 * (p1 - p0) });
+        o.amtQ = o.effQ * t1; o.amtP = o.effP * t1;
+      }
+      if (up) { o.effQp = (u1 - up) * o.pp; o.effPp = u1 * (p1 - o.pp); o.amtQp = o.effQp * t1; o.amtPp = o.effPp * t1; }
+      return o;
+    }
+    const monthSeries = f => Array.from({ length: NT }, (_, t) => f([t]));
+
+    // ---------- định phí ----------
+    const cats = CATS.filter(c => D.fixed.some(r => r.nhom === c));
+    const rowsOf = cat => D.fixed.filter(r => !cat || r.nhom === cat);
+    function fixedSeries(cat) {
+      const a = new Array(NT).fill(0), p = new Array(NT).fill(0);
+      for (const r of rowsOf(cat)) for (let t = 0; t < NT; t++) { a[t] += r.a[t]; p[t] += r.p[t]; }
+      return { a, p };
+    }
+    const fixedSum = (cat, ts, kind = 'a') => { let s = 0; for (const r of rowsOf(cat)) for (const t of ts) s += r[kind][t]; return s; };
+    const keyName = (r, by) => by === 'pt' ? r.pt : by === 'km' ? r.ten : by === 'bp' ? r.bp_ten : (mName[r.may] || r.may);
+    // chia một nhóm theo chiều 'by'; FOH/admin theo khoản mục: 5 khoản lớn nhất + Khác khi có hơn 6
+    function fixedBreak(cat, by) {
+      const m = new Map();
+      for (const r of rowsOf(cat)) {
+        const k = keyName(r, by); if (!m.has(k)) m.set(k, { name: k, a: new Array(NT).fill(0), p: new Array(NT).fill(0), kms: new Set() });
+        const o = m.get(k); o.kms.add(r.km); for (let t = 0; t < NT; t++) { o.a[t] += r.a[t]; o.p[t] += r.p[t]; }
+      }
+      let out = [...m.values()].map(o => Object.assign(o, { kms: [...o.kms], tot: sum(o.a.slice(0, CUT + 1)) }));
+      if (by === 'pt') { const ord = ['NS01', 'NS02', 'NS06', 'NS07', 'NS03', 'NS04', 'NS05', 'NS08', 'NS09']; const rk = o => Math.min(...o.kms.map(k => ord.indexOf(k) < 0 ? 99 : ord.indexOf(k))); out.sort((x, y) => rk(x) - rk(y)); }
+      else out.sort((x, y) => y.tot - x.tot);
+      if (TOPN[by] && out.length > 6) {
+        const keep = out.slice(0, 5), rest = out.slice(5);
+        const other = { name: 'Khác (' + rest.length + ' khoản)', other: true, members: rest.map(r => r.name), a: new Array(NT).fill(0), p: new Array(NT).fill(0), kms: [], tot: 0 };
+        for (const r of rest) { for (let t = 0; t < NT; t++) { other.a[t] += r.a[t]; other.p[t] += r.p[t]; } other.kms.push(...r.kms); other.tot += r.tot; }
+        out = keep.concat([other]);
+      }
+      return out;
+    }
+    // biến động theo nhóm: kỳ này, kỳ gốc (đã quy đổi), kế hoạch, khoản kéo nhiều nhất
+    function fixedMoves(P) {
+      const t1 = fixedSum(null, P.cur), t0 = baseVal(P, ts => fixedSum(null, ts));
+      return cats.map(c => {
+        const cur = fixedSum(c, P.cur), base = baseVal(P, ts => fixedSum(c, ts)), plan = fixedSum(c, P.cur, 'p');
+        const items = fixedBreak(c, BY[c][0]).map(it => ({ name: it.name, cur: sum(P.cur.map(t => it.a[t])), base: baseVal(P, ts => sum(ts.map(t => it.a[t]))), plan: sum(P.cur.map(t => it.p[t])) }));
+        items.forEach(it => { it.d = it.base == null ? null : it.cur - it.base; it.dp = it.cur - it.plan; });
+        const key = P.base ? 'd' : 'dp';
+        const driver = items.slice().sort((x, y) => Math.abs(y[key]) - Math.abs(x[key]))[0];
+        return { cat: c, cur, base, plan, d: base == null ? null : cur - base, dp: cur - plan, sh1: cur / t1, sh0: base == null ? null : base / t0, driver, key };
+      });
+    }
+    // tháng lệch > thr so với bình quân 3 tháng trước
+    function anomalies(series, thr = 0.15, upto = CUT) {
+      const o = [];
+      for (let t = 3; t <= upto; t++) { const avg = (series[t - 1] + series[t - 2] + series[t - 3]) / 3; if (avg > 0) { const r = series[t] / avg - 1; if (Math.abs(r) > thr) o.push({ t, r, d: series[t] - avg }); } }
+      return o;
+    }
+    // bảng nhiệt: mỗi khoản mục định phí, mỗi tháng: lệch so với mức thường (trung vị 3 tháng trước, 'trend') hoặc so với kế hoạch ('plan')
+    function heat(mode) {
+      const m = new Map();
+      for (const r of D.fixed) {
+        const k = r.km; if (!m.has(k)) m.set(k, { km: k, name: r.ten, cat: r.nhom, a: new Array(NT).fill(0), p: new Array(NT).fill(0) });
+        const o = m.get(k); for (let t = 0; t < NT; t++) { o.a[t] += r.a[t]; o.p[t] += r.p[t]; }
+      }
+      const rows = [...m.values()];
+      for (const o of rows) {
+        o.cells = o.a.map((v, t) => {
+          let ref = null;
+          if (mode === 'plan') ref = o.p[t] || null;
+          else if (t >= 3) { const w = [o.a[t - 1], o.a[t - 2], o.a[t - 3]].sort((x, y) => x - y); ref = w[1] || null; }   // trung vị: một tháng đột biến không làm 3 tháng sau đổi màu
+          return ref == null ? { v, ref: null, d: null, r: null } : { v, ref, d: v - ref, r: v / ref - 1 };
+        });
+        o.score = sum(o.cells.slice(0, CUT + 1).map(c => c.d == null ? 0 : Math.abs(c.d)));
+      }
+      rows.sort((x, y) => CATS.indexOf(x.cat) - CATS.indexOf(y.cat) || sum(y.a) - sum(x.a));
+      return rows;
+    }
+    // ma trận máy × khoản mục bảo dưỡng trong kỳ
+    function machineMatrix(P) {
+      const kms = [...new Set(D.fixed.filter(r => r.nhom === 'Bảo dưỡng & sửa chữa').map(r => r.km))].sort();
+      const kmName = Object.fromEntries(D.fixed.map(r => [r.km, r.ten]));
+      const rows = D.machines.map(mc => {
+        const cells = kms.map(k => {
+          const rs = D.fixed.filter(r => r.may === mc.c && r.km === k);
+          const c = sum(rs.map(r => sum(P.cur.map(t => r.a[t])))), b = baseVal(P, ts => sum(rs.map(r => sum(ts.map(t => r.a[t])))));
+          return { c, b, d: b == null ? null : c - b, p: sum(rs.map(r => sum(P.cur.map(t => r.p[t])))) };
+        });
+        const c = sum(cells.map(x => x.c)), b = P.base ? sum(cells.map(x => x.b)) : null, p = sum(cells.map(x => x.p));
+        return { c: mc.c, name: mc.ten, nhom: mc.nhom, cells, tot: { c, b, d: b == null ? null : c - b, p } };
+      }).filter(r => r.tot.c || r.tot.b);
+      return { kms: kms.map(k => ({ k, name: kmName[k] })), rows };
+    }
+    // sự kiện lớn: bút toán theo máy × khoản mục vượt BQ 3 tháng trước của chính nó
+    function machineEvents(upto = CUT) {
+      const ev = [];
+      const m = new Map();
+      for (const r of D.fixed.filter(r => r.nhom === 'Bảo dưỡng & sửa chữa')) {
+        const k = r.may + '|' + r.km; if (!m.has(k)) m.set(k, { may: r.may, km: r.km, ten: r.ten, a: new Array(NT).fill(0), p: new Array(NT).fill(0) });
+        const o = m.get(k); for (let t = 0; t < NT; t++) { o.a[t] += r.a[t]; o.p[t] += r.p[t]; }
+      }
+      for (const o of m.values()) for (let t = 0; t <= upto; t++) if (o.a[t] - o.p[t] > 30e6) ev.push({ t, may: mName[o.may], km: o.ten, v: o.a[t], p: o.p[t], d: o.a[t] - o.p[t] });
+      return ev.sort((a, b) => b.d - a.d);
+    }
+
+    // ---------- tồn kho thành phẩm & công suất ----------
+    // DIO (số ngày tồn) = tồn cuối kg / (kg bán 3 tháng gần nhất / 91 ngày). Hàng chậm luân chuyển: DIO > 60 ngày hoặc 3 tháng không bán.
+    const INV = D.inv || null;
+    function invGroup(g, t) {
+      if (!INV) return null;
+      const fs = INV.fg.filter(f => !g || f.g === g), t0 = Math.max(0, t - 2);
+      const kgC = sum(fs.map(f => f.q[t] * f.w)), v = sum(fs.map(f => f.v[t])), sold3 = sum(fs.map(f => sum(range(t0, t).map(i => f.sold[i] * f.w))));
+      return { kg: kgC, v, dio: sold3 > 0 ? kgC / (sold3 / ((t - t0 + 1) * 30.4)) : null, sold3: sold3 / (t - t0 + 1) };
+    }
+    function slow(t, days = 60) {
+      if (!INV) return [];
+      const t0 = Math.max(0, t - 2);
+      return INV.fg.map(f => { const s3 = sum(range(t0, t).map(i => f.sold[i])), dio = s3 > 0 ? f.q[t] / (s3 / ((t - t0 + 1) * 30.4)) : (f.q[t] > 0 ? Infinity : null);
+        return { c: f.c, n: f.n, g: f.g, src: f.src, q: f.q[t], kg: f.q[t] * f.w, v: f.v[t], dio, q0: t >= 12 ? f.q[t - 12] : null, v0: t >= 12 ? f.v[t - 12] : null }; })
+        .filter(x => x.q > 0 && (x.dio == null || x.dio > days)).sort((a, b) => b.v - a.v);
+    }
+    const util = (g, t) => INV && INV.cap[g][t] ? D.prod[g][t] / INV.cap[g][t] : null;
+    const utilPlan = (g, t) => INV && INV.cap[g][t] && D.plan_prod[g] ? D.plan_prod[g][t] / INV.cap[g][t] : null;
+    const otH = (g, ts) => INV ? sum(ts.map(t => INV.ot[g][t] || 0)) : null;
+    const headroom = (g, ts, ceil = 0.95) => INV ? sum(ts.map(t => Math.max(0, INV.cap[g][t] * ceil - D.prod[g][t]))) / ts.length : null;
+
+    return { invGroup, slow, util, utilPlan, otH, headroom, hasInv: !!INV, D, NT, G, CUT, isFc, label, period, baseVal, kg, kgPlan, vAmt, vPlan, vQ, perTon, perTonPlan, qPerTon, qPerTonPlan, unitPrice, varTable, unitBridge,
+      monthSeries, cats, BY, BY_NAME, fixedSeries, fixedSum, fixedBreak, fixedMoves, anomalies, heat, machineMatrix, machineEvents, VKEYS, V, sum, range };
+  }
+  const api = { make, CATS };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BDEngine = api;
+})(this);
+</script>
+<script>/* Báo cáo quản trị Biến phí và định phí – giao diện. Chỉ vẽ: mọi con số lấy từ BDEngine. SVG vẽ tay, không thư viện. */
+(function () {
+  'use strict';
+  const D = JSON.parse(document.getElementById('bd-data').textContent);
+  const E = BDEngine.make(D);
+  const $ = id => document.getElementById(id);
+  const NT = E.NT, CUT = E.CUT, G = E.G;
+  const GCOL = { 'Phôi': 'var(--navy)', 'Chai': 'var(--red)', 'Nắp': 'var(--steel)' };
+  const VCOL = { dien: 'var(--navy)', carton: 'var(--red)', vt: 'var(--steel)', vc: 'var(--pale)' };
+  const CATCOL = { 'Nhân sự': 'var(--navy)', 'FOH sản xuất': 'var(--steel)', 'Bảo dưỡng & sửa chữa': 'var(--red)', 'Hành chính (admin)': 'var(--ink)' };
+  const SUBCOL = ['var(--navy)', 'var(--red)', 'var(--steel)', 'var(--ink)', 'var(--pale)', 'var(--faint)', 'var(--navy-soft)', 'var(--red-soft)'];
+  const DEF = { mode: 'ytd', m1: CUT, m2: CUT - 12, y: CUT, c: [12, CUT, 0, CUT - 12], fixView: 'amt', heat: 'trend', cat: 'Nhân sự', by: {} };
+  const S = JSON.parse(JSON.stringify(DEF));
+  try { const s = JSON.parse(localStorage.getItem('bd-state') || '{}'); for (const k of Object.keys(DEF)) if (s[k] != null) S[k] = s[k]; } catch (e) { /* trình duyệt chặn lưu trữ */ }
+  const save = () => { try { localStorage.setItem('bd-state', JSON.stringify(S)); } catch (e) { /* bỏ qua */ } };
+
+  // ---------------- định dạng ----------------
+  const nf = dp => new Intl.NumberFormat('vi-VN', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  const N0 = nf(0), N1 = nf(1), N2 = nf(2);
+  const MINUS = '−';
+  const sgn = (v, s) => (v > 0 ? '+' : v < 0 ? MINUS : '') + s;
+  function money(v, signed) {
+    if (v == null || !isFinite(v)) return '—';
+    const a = Math.abs(v); let s;
+    if (a >= 9.995e8) s = N2.format(a / 1e9) + ' tỷ'; else if (a >= 1e6) s = N0.format(a / 1e6) + ' tr'; else s = N2.format(a / 1e6) + ' tr';
+    return signed ? sgn(Math.round(v / 1e4), s) : (v < 0 ? MINUS : '') + s;
+  }
+  const kd = (v, signed) => v == null || !isFinite(v) ? '—' : (signed ? sgn(Math.round(v), N0.format(Math.abs(v / 1000))) : N0.format(v / 1000)) + 'k';   // nghìn đồng
+  // đồng / tấn: từ 1 triệu ghi "6,51 tr đ/tấn", dưới 1 triệu ghi "286 nghìn đ/tấn"
+  const perT = (v, signed) => { if (v == null || !isFinite(v)) return '—'; const a = Math.abs(v), s = a >= 995000 ? N2.format(a / 1e6) + ' tr đ/tấn' : N0.format(a / 1000) + ' nghìn đ/tấn'; return signed ? sgn(Math.round(v), s) : (v < 0 ? MINUS : '') + s; };
+  const num = (v, dp = 0, signed) => v == null || !isFinite(v) ? '—' : signed ? sgn(+v.toFixed(dp), nf(dp).format(Math.abs(v))) : nf(dp).format(v);
+  const pct = (x, dp = 1) => (x == null || !isFinite(x)) ? '—' : (x < 0 ? MINUS : '') + nf(dp).format(Math.abs(x * 100)) + '%';
+  const pctS = (x, dp = 1) => (x == null || !isFinite(x)) ? '—' : sgn(x, nf(dp).format(Math.abs(x * 100)) + '%');
+  const pts = d => (d == null || !isFinite(d)) ? '—' : sgn(d, N1.format(Math.abs(d * 100)) + ' điểm');
+  const cc = (v, eps = 0) => v == null ? '' : v > eps ? 'down' : v < -eps ? 'up' : '';   // chi phí: tăng = đỏ, giảm = xanh
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const lbl = t => D.months[t];
+  const sum = E.sum;
+  const div = (a, b) => b ? a / b : null;
+  const fcMark = t => t > CUT ? '*' : '';
+
+  // ---------------- tooltip ----------------
+  const tip = $('tip');
+  function showTip(ev, html) {
+    tip.innerHTML = html; tip.hidden = false;
+    const r = tip.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    let x = ev.clientX + 14, y = ev.clientY + 14;
+    if (x + r.width > vw - 8) x = Math.max(8, ev.clientX - r.width - 14);
+    if (y + r.height > vh - 8) y = Math.max(8, ev.clientY - r.height - 14);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  const hideTip = () => { tip.hidden = true; };
+  const tr = (a, b, c) => `<div class="r"><span>${c ? `<i style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;background:${c}"></i>` : ''}${esc(a)}</span><span>${b}</span></div>`;
+
+  // ---------------- thang đo ----------------
+  function nice(lo, hi, n = 4) {
+    if (!(hi > lo)) hi = lo + 1;
+    const span = hi - lo, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0))), r = step0 / mag;
+    const step = (r <= 1 ? 1 : r <= 2 ? 2 : r <= 2.5 ? 2.5 : r <= 5 ? 5 : 10) * mag;
+    const a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step, ticks = [];
+    for (let v = a; v <= b + step / 2; v += step) ticks.push(+v.toFixed(10));
+    return { lo: a, hi: b, ticks };
+  }
+
+  // nền chung của biểu đồ theo tháng: vùng kỳ phân tích / kỳ gốc, vạch dự báo, trục x
+  // Month: khung nét đứt quanh đúng 2 tháng đang so sánh (đen = tháng phân tích, xám = tháng gốc). YTD / Custom: không vẽ khung.
+  function frame(o, m, pw, ph, bw, P) {
+    if (CUT < NT - 1) o.push(`<text x="${m.l + bw * (CUT + 1) + 3}" y="${m.t - 8}" style="font-size:10px;fill:var(--faint)">Dự báo</text>`, `<line x1="${m.l + bw * (CUT + 1)}" x2="${m.l + bw * (CUT + 1)}" y1="${m.t - 16}" y2="${m.t + ph}" stroke="var(--line-2)" stroke-dasharray="3 3"/>`);
+  }
+  function monthBoxes(o, m, ph, bw, P) {
+    if (!P || P.mode !== 'm') return;
+    const box = (t, col, w, txt) => {
+      if (t == null || t < 0 || t >= NT) return;
+      const x0 = m.l + bw * t + 1, wd = Math.max(4, bw - 2);
+      o.push(`<rect class="mbox" x="${x0}" y="${m.t - 4}" width="${wd}" height="${ph + 4}" fill="none" stroke="${col}" stroke-width="${w}" stroke-dasharray="4 3" rx="2"/>`);
+      if (bw >= 22) o.push(`<text x="${x0 + wd / 2}" y="${m.t - 8}" text-anchor="middle" style="font-size:10px;font-weight:700;fill:${col}">${esc(txt)}</text>`);
+    };
+    if (P.base && P.base[0] !== P.cur[0]) box(P.base[0], 'var(--muted)', 1.4, lbl(P.base[0]));
+    box(P.cur[0], 'var(--ink)', 1.8, lbl(P.cur[0]));
+  }
+  function xAxis(o, m, ph, bw, x) {
+    const every = bw >= 30 ? 1 : bw >= 15 ? 3 : 6;
+    for (let t = 0; t < NT; t++) {
+      const mo = (t % 12) + 1;
+      if ((mo - 1) % every === 0) o.push(`<text x="${x(t)}" y="${m.t + ph + 14}" text-anchor="middle">T${mo}</text>`);
+      if (mo === 1) { o.push(`<text x="${m.l + bw * t + 2}" y="${m.t + ph + 29}" style="font-weight:700;fill:var(--ink)">${2025 + Math.floor(t / 12)}</text>`); if (t) o.push(`<line x1="${m.l + bw * t}" x2="${m.l + bw * t}" y1="${m.t}" y2="${m.t + ph + 18}" stroke="var(--line-2)"/>`); }
+    }
+    for (let t = 0; t < NT; t++) o.push(`<rect class="hit" data-t="${t}" x="${m.l + bw * t}" y="${m.t}" width="${bw}" height="${ph}"/>`);
+  }
+  function bindHits(el, cfg) {
+    el.querySelectorAll('.hit').forEach(h => {
+      const t = +h.dataset.t;
+      h.addEventListener('pointermove', ev => showTip(ev, cfg.tip(t)));
+      h.addEventListener('pointerleave', hideTip);
+      if (cfg.onPick) h.addEventListener('click', () => { hideTip(); cfg.onPick(t); });
+    });
+  }
+  const pathOf = (vals, x, y, a, b) => { let d = ''; for (let t = a; t <= b; t++) { if (vals[t] == null || !isFinite(vals[t])) continue; d += (d ? 'L' : 'M') + x(t).toFixed(1) + ',' + y(vals[t]).toFixed(1); } return d; };
+
+  // cột chồng theo tháng + đường kế hoạch (nét chấm) · cfg: stacks [{color, vals}], plan {vals,color}, fmt, unit, P, h, marks, tip, onPick
+  function bars(el, cfg) {
+    const W = Math.max(260, el.clientWidth || 800), narrow = W < 560, H = cfg.h || (narrow ? 230 : 280);
+    const m = { l: 44, r: 10, t: 22, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b, bw = pw / NT, bar = Math.max(3, bw * 0.66);
+    let hi = 0;
+    for (let t = 0; t < NT; t++) hi = Math.max(hi, sum(cfg.stacks.map(s => Math.max(0, s.vals[t] || 0))));
+    if (cfg.plan) for (const v of cfg.plan.vals) if (v != null) hi = Math.max(hi, v);
+    const L = nice(0, (cfg.max || hi) * 1.04), y = v => m.t + ph - (v - L.lo) / (L.hi - L.lo) * ph, x = t => m.l + bw * t + bw / 2;
+    const o = [`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(cfg.aria || '')}">`];
+    frame(o, m, pw, ph, bw, cfg.P);
+    for (const v of L.ticks) o.push(`<line class="${v === 0 ? 'ax0' : 'ax'}" x1="${m.l}" x2="${m.l + pw}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${cfg.fmt(v)}</text>`);
+    o.push(`<text x="0" y="${m.t - 10}" style="font-size:10px">${esc(cfg.unit)}</text>`);
+    for (let t = 0; t < NT; t++) {
+      let up = 0; const op = t > CUT ? 0.32 : 1;
+      for (const s of cfg.stacks) {
+        const v = Math.max(0, s.vals[t] || 0); if (!v) continue;
+        o.push(`<rect x="${x(t) - bar / 2}" y="${y(up + v)}" width="${bar}" height="${Math.max(0.5, y(up) - y(up + v))}" fill="${s.color}" opacity="${op}"/>`); up += v;
+      }
+    }
+    if (cfg.plan) o.push(`<path d="${pathOf(cfg.plan.vals, x, y, 0, NT - 1)}" fill="none" stroke="${cfg.plan.color}" stroke-width="1.6" stroke-dasharray="2 3"/>`);
+    for (const t of cfg.marks || []) { const tot = sum(cfg.stacks.map(s => Math.max(0, s.vals[t] || 0))); o.push(`<path d="M${x(t) - 4},${y(tot) - 9} L${x(t) + 4},${y(tot) - 9} L${x(t)},${y(tot) - 3} Z" fill="var(--red)"/>`); }
+    monthBoxes(o, m, ph, bw, cfg.P);
+    xAxis(o, m, ph, bw, x);
+    o.push('</svg>'); el.innerHTML = o.join(''); bindHits(el, cfg);
+  }
+  // đường theo tháng · cfg: series [{color, vals}], plans [{color, vals}], fmt, unit, P, h, tip, onPick, zero
+  function lines(el, cfg) {
+    const W = Math.max(260, el.clientWidth || 800), narrow = W < 560, H = cfg.h || (narrow ? 220 : 260);
+    const m = { l: 44, r: 10, t: 22, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b, bw = pw / NT;
+    const all = []; for (const s of cfg.series.concat(cfg.plans || [])) for (const v of s.vals) if (v != null && isFinite(v)) all.push(v);
+    const mn = Math.min(...all), mx = Math.max(...all), pad = (mx - mn) * 0.15 || mx * 0.05;
+    const L = nice(cfg.zero ? 0 : Math.max(0, mn - pad), mx + pad);
+    const y = v => m.t + ph - (v - L.lo) / (L.hi - L.lo) * ph, x = t => m.l + bw * t + bw / 2;
+    const o = [`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(cfg.aria || '')}">`];
+    frame(o, m, pw, ph, bw, cfg.P);
+    for (const v of L.ticks) o.push(`<line class="ax" x1="${m.l}" x2="${m.l + pw}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${cfg.fmt(v)}</text>`);
+    o.push(`<text x="0" y="${m.t - 10}" style="font-size:10px">${esc(cfg.unit)}</text>`);
+    for (const s of cfg.plans || []) o.push(`<path d="${pathOf(s.vals, x, y, 0, NT - 1)}" fill="none" stroke="${s.color}" stroke-width="1.3" stroke-dasharray="2 3" opacity=".85"/>`);
+    for (const s of cfg.series) {
+      o.push(`<path d="${pathOf(s.vals, x, y, 0, CUT)}" fill="none" stroke="${s.color}" stroke-width="2.2"/>`);
+      if (CUT < NT - 1) o.push(`<path d="${pathOf(s.vals, x, y, CUT, NT - 1)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-dasharray="5 4" opacity=".45"/>`);
+      for (let t = 0; t < NT; t++) if (s.vals[t] != null) o.push(`<circle cx="${x(t)}" cy="${y(s.vals[t])}" r="2.3" fill="${t > CUT ? 'var(--paper)' : s.color}" stroke="${s.color}" stroke-width="1.3" opacity="${t > CUT ? .6 : 1}"/>`);
+    }
+    monthBoxes(o, m, ph, bw, cfg.P);
+    xAxis(o, m, ph, bw, x);
+    o.push('</svg>'); el.innerHTML = o.join(''); bindHits(el, cfg);
+  }
+
+  // ---------------- chọn kỳ ----------------
+  const opts = (sel) => D.months.map((mm, t) => `<option value="${t}"${t === sel ? ' selected' : ''}>${mm}${t > CUT ? ' (dự báo)' : ''}</option>`).join('');
+  const selBox = (id, v, aria) => `<select id="${id}" aria-label="${aria}">${opts(v)}</select>`;
+  function renderPer() {
+    const el = $('per');
+    if (S.mode === 'm') el.innerHTML = selBox('p-m1', S.m1, 'Tháng phân tích') + '<span class="vs">so với</span>' + selBox('p-m2', S.m2, 'Tháng gốc');
+    else if (S.mode === 'ytd') el.innerHTML = '<span class="lbl-s">Lũy kế đến</span>' + selBox('p-y', S.y, 'Lũy kế đến tháng') + '<span class="lbl-s">so cùng kỳ năm trước</span>';
+    else el.innerHTML = selBox('p-c0', S.c[0], 'Từ tháng') + '<span class="vs">–</span>' + selBox('p-c1', S.c[1], 'Đến tháng') + '<span class="vs">so với</span>' + selBox('p-c2', S.c[2], 'Kỳ gốc từ tháng') + '<span class="vs">–</span>' + selBox('p-c3', S.c[3], 'Kỳ gốc đến tháng');
+    el.querySelectorAll('select').forEach(s => s.addEventListener('change', () => {
+      const v = +s.value, id = s.id;
+      if (id === 'p-m1') S.m1 = v; else if (id === 'p-m2') S.m2 = v; else if (id === 'p-y') S.y = v; else S.c[+id.slice(-1)] = v;
+      save(); render();
+    }));
+  }
+  function currentPeriod() {
+    if (S.mode === 'm') return E.period('m', S.m1, S.m2);
+    if (S.mode === 'ytd') return E.period('ytd', S.y);
+    return E.period('c', S.c[0], S.c[1], S.c[2], S.c[3]);
+  }
+  const pickMonth = t => { S.mode = 'm'; S.m1 = t; S.m2 = t >= 12 ? t - 12 : Math.max(0, t - 1); save(); render(); };
+  function seg(id, key) {
+    $(id).querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S[key] = b.dataset.v; save(); render(); }));
+  }
+  const syncSeg = (id, v) => $(id).querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  function setup() {
+    seg('mode', 'mode'); seg('fix-view', 'fixView'); seg('heat-mode', 'heat');
+    $('fcnote').textContent = `Dự báo (sau ${lbl(CUT)})`;
+    $('sub').textContent = `Phôi · Chai · Nắp · thực tế đến ${lbl(CUT)} · ${D.nguon}`;
+    let rt, lastW = window.innerWidth; window.addEventListener('resize', () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; clearTimeout(rt); rt = setTimeout(render, 120); });
+  }
+
+  // ---------------- dựng trang ----------------
+  function render() {
+    hideTip();
+    syncSeg('mode', S.mode); syncSeg('fix-view', S.fixView); syncSeg('heat-mode', S.heat);
+    renderPer();
+    $('selnote').hidden = S.mode !== 'm';
+    const P = currentPeriod();
+    renderTop(P); renderVar(P); renderKwh(P); renderCarton(P); renderFix(P); renderHeat(P); renderDrill(P); renderYear(); renderInv(P); renderMethod(P);
+  }
+  const baseTxt = P => P.base ? `so với ${esc(P.baseName)}${P.norm ? ' (quy về cùng số tháng)' : ''}` : '';
+  const fcTag = P => P.hasFc ? ' <span class="flag">có tháng dự báo</span>' : '';
+
+  function renderTop(P) {
+    const vc = E.perTon(null, null, P.cur), vb = P.base ? E.perTon(null, null, P.base) : null, vp = E.perTonPlan(null, null, P.cur);
+    const f1 = E.fixedSum(null, P.cur), f0 = E.baseVal(P, ts => E.fixedSum(null, ts)), fp = E.fixedSum(null, P.cur, 'p');
+    const n = P.cur.length, mv = E.fixedMoves(P);
+    const kwh1 = E.qPerTon('dien', null, P.cur), kwh0 = P.base ? E.qPerTon('dien', null, P.base) : null;
+    const ct1 = E.perTon('carton', null, P.cur), ct0 = P.base ? E.perTon('carton', null, P.base) : null;
+    let h = `<b>${esc(P.curName)}</b>${P.base ? ' ' + baseTxt(P) : ''}: biến phí sản xuất <b>${perT(vc)}</b>`;
+    if (vb != null) {
+      const worst = G.map(g => ({ g, d: E.perTon(null, g, P.cur) - E.perTon(null, g, P.base) })).sort((a, b) => b.d - a.d)[0];
+      h += ` (<b class="${cc(vc - vb)}">${perT(vc - vb, true)}</b>; tăng mạnh nhất ở ${worst.g} ${perT(worst.d, true)})`;
+    }
+    h += `. Định phí <b>${money(f1)}</b>${n > 1 ? ` (BQ ${money(f1 / n)}/tháng)` : ''}`;
+    if (f0 != null) {
+      const big = mv.slice().sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+      h += `, <b class="${cc(f1 - f0)}">${money(f1 - f0, true)}</b>, chủ yếu ở ${esc(big.cat)} ${money(big.d, true)} (${esc(big.driver.name)} ${money(big.driver.d, true)})`;
+    }
+    h += `; so với kế hoạch <b class="${cc(f1 - fp)}">${money(f1 - fp, true)}</b>.`;
+    $('headline').innerHTML = h + fcTag(P);
+    const dd = (a, b, f) => b == null ? '' : `<span class="${cc(a - b)}">${f(a - b)}</span> <span>vs gốc</span>`;
+    const kp = [
+      ['Biến phí SX / tấn', perT(vc), dd(vc, vb, v => perT(v, true)) + ` <span>KH ${perT(vp)}</span>`],
+      ['Điện năng / tấn', num(kwh1) + ' kWh', kwh0 == null ? '' : `<span class="${cc(kwh1 - kwh0, 0.5)}">${num(kwh1 - kwh0, 0, true)} kWh</span> <span>${pctS(kwh1 / kwh0 - 1)}</span>`],
+      ['Carton / tấn', perT(ct1), dd(ct1, ct0, v => perT(v, true))],
+      ['Định phí' + (n > 1 ? ' / tháng' : ''), money(f1 / n), (f0 == null ? '' : `<span class="${cc(f1 - f0)}">${pctS(f1 / f0 - 1)}</span> <span>vs gốc</span> `) + `<span class="${cc(f1 - fp)}">${pctS(f1 / fp - 1)}</span> <span>vs KH</span>`],
+    ];
+    $('kpis').innerHTML = kp.map(k => `<div class="kpi"><span class="lbl">${k[0]}</span><span class="val">${k[1]}</span><span class="d">${k[2]}</span></div>`).join('');
+  }
+
+  // ---------- 1. Biến phí / tấn ----------
+  // ---------- 4. tồn kho thành phẩm & công suất (đứng ở tháng cuối của kỳ phân tích) ----------
+  function renderInv(P) {
+    if (!E.hasInv) { $('ton-kho').hidden = true; return; }
+    const t = P.cur[P.cur.length - 1], tb = P.base ? P.base[P.base.length - 1] : (t >= 12 ? t - 12 : null), DAYS = 45;
+    const tn = v => N0.format(v / 1000) + ' tấn', day = v => v == null ? '—' : !isFinite(v) ? 'không bán' : N0.format(v) + ' ngày';
+    const tot = E.invGroup(null, t), tot0 = tb != null ? E.invGroup(null, tb) : null;
+    bars($('inv-chart'), { stacks: G.map(g => ({ color: GCOL[g], vals: E.range(0, NT - 1).map(i => E.invGroup(g, i).v) })), fmt: v => N1.format(v / 1e9), unit: 'tỷ đ', P, aria: 'Giá trị tồn kho thành phẩm',
+      tip: i => `<b>Cuối ${lbl(i)}</b>${i > CUT ? ' · dự báo' : ''}` + G.map(g => { const x = E.invGroup(g, i); return tr(g, `${money(x.v)} · ${tn(x.kg)} · ${day(x.dio)}`, GCOL[g]); }).join('') + tr('Tổng', money(E.invGroup(null, i).v)), onPick: pickMonth });
+    $('inv-legend').innerHTML = G.map(g => `<span><i style="background:${GCOL[g]}"></i>${g}</span>`).join('');
+    const row = (name, g, c0) => { const a = E.invGroup(g, t), b = tb != null ? E.invGroup(g, tb) : null;
+      return `<tr class="${c0 || ''}"><td>${esc(name)}</td><td>${tn(a.kg)}</td><td>${money(a.v)}</td><td>${b ? `<span class="${cc(a.v - b.v, 1e6)}">${money(a.v - b.v, true)}</span>` : '—'}</td><td>${day(a.dio)}</td><td>${b ? day(b.dio) : '—'}</td><td>${tn(a.sold3)}</td></tr>`; };
+    $('inv-tbl').innerHTML = `<thead><tr><th>Cuối ${esc(lbl(t))}</th><th>Tồn kho</th><th>Giá trị</th><th>So với cuối ${tb != null ? esc(lbl(tb)) : '—'}</th><th>Số ngày tồn</th><th>Số ngày tồn ${tb != null ? esc(lbl(tb)) : ''}</th><th>Bán BQ / tháng (3 tháng)</th></tr></thead><tbody>` +
+      G.map(g => row(g, g)).join('') + row('Tổng thành phẩm', null, 'tot') + '</tbody>';
+    const sl = E.slow(t, DAYS);
+    $('slow-t').textContent = `Hàng nằm lâu cuối ${lbl(t)}`;
+    $('slow-tbl').innerHTML = sl.length ? `<thead><tr><th>Mã</th><th>Nhóm</th><th>Tồn (thùng)</th><th>Giá trị</th><th>Số ngày tồn</th><th>Cùng kỳ (thùng)</th></tr></thead><tbody>` +
+      sl.map(x => `<tr><td>${esc(x.c)} <small style="color:var(--faint)">${esc(x.n)}</small></td><td>${esc(x.g)}</td><td>${N0.format(x.q)}</td><td>${money(x.v)}</td><td class="down">${day(x.dio)}</td><td>${x.q0 == null ? '—' : N0.format(x.q0)}</td></tr>`).join('') +
+      `<tr class="tot"><td>Tổng hàng nằm lâu</td><td></td><td></td><td>${money(sum(sl.map(x => x.v)))}</td><td></td><td></td></tr></tbody>` :
+      `<tbody><tr><td>Không mã nào tồn quá ${DAYS} ngày bán.</td></tr></tbody>`;
+    // công suất
+    const ucol = g => GCOL[g];
+    lines($('cap-chart'), { series: G.map(g => ({ color: ucol(g), vals: E.range(0, NT - 1).map(i => (E.util(g, i) || 0) * 100) })), plans: G.map(g => ({ color: ucol(g), vals: E.range(0, NT - 1).map(i => i > CUT ? (E.utilPlan(g, i) || 0) * 100 : null) })),
+      fmt: v => N0.format(v) + '%', unit: '% công suất', P, zero: true, aria: 'Tỷ lệ dùng công suất',
+      tip: i => `<b>${lbl(i)}</b>${i > CUT ? ' · dự báo' : ''}` + G.map(g => tr(g, pct(E.util(g, i), 0) + (E.utilPlan(g, i) != null ? ` · KH ${pct(E.utilPlan(g, i), 0)}` : ''), ucol(g))).join(''), onPick: pickMonth });
+    $('cap-legend').innerHTML = G.map(g => `<span><i class="ln" style="background:${ucol(g)}"></i>${g}</span>`).join('') + '<span>chấm: kế hoạch</span>';
+    const L3 = E.range(Math.max(0, t - 2), t), L3b = L3.map(i => i - 12).filter(i => i >= 0), NX = E.range(t + 1, Math.min(NT - 1, t + 3));
+    const avg = (g, ts, f) => ts.length ? sum(ts.map(i => f(g, i) || 0)) / ts.length : null;
+    const pk = g => Math.max(...E.range(Math.max(0, t - 11), t).map(i => E.util(g, i) || 0));
+    $('cap-tbl').innerHTML = `<thead><tr><th>Nhóm</th><th>Dùng 3 tháng gần nhất</th><th>Cùng kỳ</th><th>Cao nhất 12 tháng</th><th>Kế hoạch ${NX.length} tháng tới</th><th>Còn trống đến 95%</th><th>Tăng ca 3 tháng (giờ)</th><th>Cùng kỳ (giờ)</th></tr></thead><tbody>` +
+      G.map(g => { const u = avg(g, L3, E.util), up = NX.length ? avg(g, NX, E.utilPlan) : null, p = pk(g);
+        return `<tr><td>${esc(g)}</td><td>${pct(u, 0)}</td><td>${L3b.length ? pct(avg(g, L3b, E.util), 0) : '—'}</td><td class="${p >= 0.95 ? 'down' : ''}">${pct(p, 0)}</td><td class="${up != null && up >= 0.95 ? 'down' : ''}">${up == null ? '—' : pct(up, 0)}</td><td>${tn(E.headroom(g, L3))}/tháng</td><td>${N0.format(E.otH(g, L3))}</td><td>${L3b.length ? N0.format(E.otH(g, L3b)) : '—'}</td></tr>`; }).join('') + '</tbody>';
+    const hi = G.map(g => ({ g, p: pk(g) })).sort((a, b) => b.p - a.p)[0], big = G.map(g => ({ g, h: E.headroom(g, L3) })).sort((a, b) => b.h - a.h)[0];
+    $('inv-lede').innerHTML = `Cuối <b>${esc(lbl(t))}</b>${t > CUT ? ' (dự báo)' : ''} tồn kho thành phẩm <b>${tn(tot.kg)}</b>, giá trị <b>${money(tot.v)}</b>` + (tot0 ? ` (<span class="${cc(tot.v - tot0.v, 1e6)}">${money(tot.v - tot0.v, true)}</span> so với cuối ${esc(lbl(tb))})` : '') +
+      `, đủ bán ${G.map(g => `${g} ${day(E.invGroup(g, t).dio)}`).join(', ')}. ` + (sl.length ? `<b class="down">${sl.length} mã nằm quá ${DAYS} ngày bán</b>, giá trị ${money(sum(sl.map(x => x.v)))}. ` : `Không mã nào nằm quá ${DAYS} ngày bán. `) +
+      `Công suất 12 tháng qua cao nhất ở ${hi.g} ${pct(hi.p, 0)}; 3 tháng gần nhất còn trống nhiều nhất ở ${big.g} ${tn(big.h)}/tháng (đến mức 95%).`;
+    $('inv-note').textContent = 'Tồn kho = tồn đầu + nhập kho từ sản xuất − xuất bán theo sổ kho thành phẩm; giá trị theo sổ kho (giá thành bình quân). Số ngày tồn = tồn cuối / sản lượng bán bình quân 3 tháng × 30,4. Công suất = sản lượng sản xuất / công suất thiết kế có hiệu lực trong tháng; kế hoạch theo tấn sản xuất kế hoạch. Tháng sau ' + lbl(CUT) + ' là dự báo.';
+  }
+
+  // ---------- 3. cả năm: thực tế + dự báo so với kế hoạch và năm trước (không phụ thuộc kỳ đang chọn) ----------
+  function renderYear() {
+    const y0 = Math.floor(CUT / 12) * 12, Y = E.range(y0, Math.min(NT - 1, y0 + 11)), act = Y.filter(t => t <= CUT), rest = Y.filter(t => t > CUT);
+    const yLab = lbl(Y[0]).replace(/^T\d+\//, '20'), prev = Y.map(t => t - 12), hasPY = prev[0] >= 0, hasPL = Y.every(t => (D.plan_prod[G[0]] || [])[t] != null);
+    const yy = yLab, py = String(+yy - 1);
+    const head = first => `<thead><tr><th>${first}</th>${hasPY ? `<th>Năm ${py}</th>` : ''}<th>Thực tế ${esc(lbl(act[0]))}–${esc(lbl(CUT))}</th><th>Forecast cả năm ${yy}</th>${hasPL ? `<th>Kế hoạch ${yy}</th><th>Forecast so kế hoạch</th>` : ''}${hasPY ? `<th>Forecast so năm ${py}</th>` : ''}</tr></thead>`;
+    // biến phí / tấn
+    const vrow = (name, k, g, cls0) => { const a = E.perTon(k, g, act), f = E.perTon(k, g, Y), p = hasPL ? E.perTonPlan(k, g, Y) : null, q = hasPY ? E.perTon(k, g, prev) : null;
+      const dpl = p == null ? '' : `<td class="${cc(f - p)}">${kd(f - p, true)} <small>${pctS(div(f - p, p))}</small></td>`, dpy = !hasPY || q == null ? '' : `<td class="${cc(f - q)}">${kd(f - q, true)} <small>${pctS(div(f - q, q))}</small></td>`;
+      return `<tr class="${cls0 || ''}"><td>${esc(name)}</td>${hasPY ? `<td>${kd(q)}</td>` : ''}<td>${kd(a)}</td><td><b>${kd(f)}</b></td>${hasPL ? `<td>${kd(p)}</td>${dpl}` : ''}${dpy}</tr>`; };
+    $('yr-var').innerHTML = head('Biến phí / tấn') + '<tbody>' + G.map(g => vrow(g, null, g)).join('') + vrow('Toàn công ty', null, null, 'tot') + E.VKEYS.map(k => vrow('· ' + E.V[k].ten, k, null, 'sub')).join('') + '</tbody>';
+    // định phí
+    const frow = (name, cat, cls0) => { const a = E.fixedSum(cat, act), f = E.fixedSum(cat, Y), p = hasPL ? E.fixedSum(cat, Y, 'p') : null, q = hasPY ? E.fixedSum(cat, prev) : null;
+      const dpl = p == null ? '' : `<td class="${cc(f - p, 1e6)}">${money(f - p, true)} <small>${pctS(div(f - p, p))}</small></td>`, dpy = !hasPY || q == null ? '' : `<td class="${cc(f - q, 1e6)}">${money(f - q, true)} <small>${pctS(div(f - q, q))}</small></td>`;
+      return `<tr class="${cls0 || ''}"><td>${esc(name)}</td>${hasPY ? `<td>${money(q)}</td>` : ''}<td>${money(a)}</td><td><b>${money(f)}</b></td>${hasPL ? `<td>${money(p)}</td>${dpl}` : ''}${dpy}</tr>`; };
+    $('yr-fix').innerHTML = head('Định phí') + '<tbody>' + E.cats.map(c => frow(c, c)).join('') + frow('Tổng định phí', null, 'tot') + '</tbody>';
+    const f = E.fixedSum(null, Y), p = hasPL ? E.fixedSum(null, Y, 'p') : null, v = E.perTon(null, null, Y), vp = hasPL ? E.perTonPlan(null, null, Y) : null;
+    $('yr-lede').innerHTML = `Năm ${yy}: thực tế ${esc(lbl(act[0]))}–${esc(lbl(CUT))} cộng ${rest.length} tháng dự báo. Biến phí sản xuất cả năm <b>${perT(v)}</b>` + (vp != null ? ` (kế hoạch ${perT(vp)}, <span class="${cc(v - vp)}">${perT(v - vp, true)}</span>)` : '') + `; định phí <b>${money(f)}</b>` + (p != null ? ` (kế hoạch ${money(p)}, <span class="${cc(f - p, 1e6)}">${money(f - p, true)}</span>)` : '') + '.';
+    $('yr-note').textContent = `Chi phí tăng so với kế hoạch hoặc năm trước hiện màu đỏ. Số cả năm lấy thực tế đến ${lbl(CUT)} cộng dự báo của dữ liệu cho các tháng sau; kế hoạch theo ngân sách ${yy}.`;
+  }
+
+  function renderVar(P) {
+    $('var-legend').innerHTML = E.VKEYS.map(k => `<span><i style="background:${VCOL[k]}"></i>${esc(E.V[k].ten)}</span>`).join('') + `<span><i class="dot" style="border-color:var(--ink)"></i>Kế hoạch / tấn</span>`;
+    const mx = Math.max(...G.map(g => Math.max(...Array.from({ length: NT }, (_, t) => Math.max(E.perTon(null, g, [t]) || 0, E.perTonPlan(null, g, [t]) || 0)))));
+    $('var-multi').innerHTML = G.map((g, i) => `<div><div class="mini-h"><b><i style="background:${GCOL[g]}"></i>${g}</b><span><span class="num">${perT(E.perTon(null, g, P.cur))}</span> <span class="d ${P.base ? cc(E.perTon(null, g, P.cur) - E.perTon(null, g, P.base)) : ''}">${P.base ? pctS(E.perTon(null, g, P.cur) / E.perTon(null, g, P.base) - 1) : ''}</span></span></div><div class="chart" id="vm-${i}"></div>
+      <div class="mini-f"><span>Tấn SX <span class="num">${num(E.kg(g, P.cur) / 1000)}</span></span><span>Biến phí <span class="num">${money(E.vAmt(null, g, P.cur))}</span></span></div></div>`).join('');
+    G.forEach((g, i) => {
+      const el = $('vm-' + i), stacks = E.VKEYS.map(k => ({ color: VCOL[k], vals: E.monthSeries(ts => E.perTon(k, g, ts)) }));
+      bars(el, {
+        aria: 'Biến phí trên tấn ' + g, stacks, plan: { vals: E.monthSeries(ts => E.perTonPlan(null, g, ts)), color: 'var(--ink)' }, max: mx, h: 220,
+        fmt: v => N0.format(v / 1000), unit: 'nghìn đ / tấn', P, onPick: pickMonth,
+        tip: t => `<b>${g} · ${lbl(t)}${t > CUT ? ' · dự báo' : ''}</b>` + E.VKEYS.map(k => tr(E.V[k].ten, perT(E.perTon(k, g, [t])), VCOL[k])).join('') + tr('Tổng / tấn', perT(E.perTon(null, g, [t]))) + tr('Kế hoạch / tấn', perT(E.perTonPlan(null, g, [t]))) + tr('Tấn sản xuất', num(E.kg(g, [t]) / 1000)),
+      });
+    });
+    const T = E.varTable(P), hb = !!P.base, gname = g => g || 'Toàn công ty';
+    const cellH = `<th class="sep">${esc(P.curName)}</th>${hb ? '<th>Δ vs gốc</th>' : ''}<th>Δ vs KH</th>`;
+    const head = `<thead><tr><th rowspan="2">Đồng / tấn sản xuất</th>${T.groups.map(g => `<th class="grp sep" colspan="${hb ? 3 : 2}">${gname(g)}</th>`).join('')}</tr><tr>${T.groups.map(() => cellH).join('')}</tr></thead>`;
+    const cells = cs => cs.map(c => `<td class="sep">${kd(c.c)}</td>${hb ? `<td class="${cc(c.d, 50)}">${kd(c.d, true)}</td>` : ''}<td class="${cc(c.dp, 50)}">${kd(c.dp, true)}</td>`).join('');
+    $('var-tbl').innerHTML = head + '<tbody>' + T.rows.map(r => `<tr><td><i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;background:${VCOL[r.k]}"></i>${esc(r.name)}</td>${cells(r.cells)}</tr>`).join('') +
+      `<tr class="sum"><td>Tổng biến phí / tấn</td>${cells(T.total)}</tr>` +
+      `<tr><td>Tấn sản xuất</td>${T.tons.map(tn => `<td class="sep">${num(tn.c)}</td>${hb ? `<td>${pctS(tn.c / tn.b - 1)}</td>` : ''}<td>${pctS(tn.c / tn.p - 1)}</td>`).join('')}</tr>` +
+      `<tr><td>Biến phí (tiền)</td>${T.total.map(c => `<td class="sep">${money(c.amt)}</td>${hb ? '<td></td>' : ''}<td></td>`).join('')}</tr></tbody>`;
+    // diễn giải
+    if (hb) {
+      const all = T.rows.flatMap(r => G.map((g, i) => ({ g, name: r.name, d: r.cells[i].d, amt: r.cells[i].d * T.tons[i].c }))).sort((a, b) => b.amt - a.amt);
+      const top = all[0], tot = T.total[3];
+      $('var-lede').innerHTML = `Biến phí sản xuất toàn công ty ${esc(P.curName)} là <b>${perT(tot.c)}</b>, ${tot.d >= 0 ? 'cao hơn' : 'thấp hơn'} ${esc(P.baseName)} <b class="${cc(tot.d)}">${perT(Math.abs(tot.d))}</b>. Trên số tấn đã sản xuất, phần tăng/giảm đơn vị này bằng <b>${money(tot.d * T.tons[3].c, true)}</b>. Khoản kéo nhiều nhất: ${esc(top.name)} ở ${top.g} ${perT(top.d, true)} (${money(top.amt, true)}). Nắp tốn carton/tấn gấp khoảng ${N0.format(T.rows.find(r => r.k === 'carton').cells[2].c / T.rows.find(r => r.k === 'carton').cells[0].c)} lần Phôi vì mỗi thùng nắp chỉ nặng 2–5 kg.` + fcTag(P);
+    } else $('var-lede').innerHTML = `Biến phí sản xuất ${esc(P.curName)} là <b>${perT(T.total[3].c)}</b>.`;
+  }
+
+  // ---------- 1a. Điện năng ----------
+  function renderKwh(P) {
+    $('kwh-legend').innerHTML = G.map(g => `<span><i class="ln" style="background:${GCOL[g]}"></i>${g}</span>`).join('') + `<span><i class="dot" style="border-color:var(--faint)"></i>Kế hoạch (cùng màu, nét chấm)</span>`;
+    const ser = G.map(g => ({ color: GCOL[g], vals: E.monthSeries(ts => E.qPerTon('dien', g, ts)) }));
+    const plans = G.map(g => ({ color: GCOL[g], vals: E.monthSeries(ts => E.qPerTonPlan('dien', g, ts)) }));
+    lines($('kwh-chart'), {
+      aria: 'kWh trên tấn theo nhóm', series: ser, plans, fmt: v => N0.format(v), unit: 'kWh/tấn', P, onPick: pickMonth,
+      tip: t => `<b>${lbl(t)}${t > CUT ? ' · dự báo' : ''}</b>` + G.map(g => tr(g, `${num(E.qPerTon('dien', g, [t]))} kWh/t · KH ${num(E.qPerTonPlan('dien', g, [t]))}`, GCOL[g])).join('') + tr('Giá điện', num(E.unitPrice('dien', null, [t])) + ' đ/kWh'),
+    });
+    const hb = !!P.base, B = G.map(g => ({ g, b: E.unitBridge('dien', g, P) })), Bt = E.unitBridge('dien', null, P);
+    const rows = B.concat([{ g: null, b: Bt }]);
+    $('kwh-tbl').innerHTML = `<thead><tr><th>Nhóm</th>${hb ? '<th class="sep">kWh/tấn gốc</th>' : ''}<th class="sep">kWh/tấn ${esc(P.curName)}</th><th>KH</th>${hb ? '<th>Δ vs gốc</th>' : ''}<th>Δ vs KH</th><th class="sep">đ/kWh</th><th>Điện / tấn</th>${hb ? '<th class="sep">Do dùng nhiều/ít kWh</th><th>Do giá điện</th>' : '<th class="sep">Do kWh so với KH</th>'}</tr></thead><tbody>` +
+      rows.map(({ g, b }) => `<tr${g ? '' : ' class="sum"'}><td>${g ? `<i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;background:${GCOL[g]}"></i>${g}` : 'Toàn công ty'}</td>${hb ? `<td class="sep">${num(b.u0)}</td>` : ''}<td class="sep">${num(b.u1)}</td><td>${num(b.up)}</td>${hb ? `<td class="${cc(b.u1 - b.u0, 5)}">${pctS(b.u1 / b.u0 - 1)}</td>` : ''}<td class="${cc(b.u1 - b.up, 5)}">${pctS(b.u1 / b.up - 1)}</td><td class="sep">${num(b.p1)}</td><td>${perT(b.c1)}</td>${hb ? `<td class="sep ${cc(b.amtQ, 1e5)}">${money(b.amtQ, true)}</td><td class="${cc(b.amtP, 1e5)}">${money(b.amtP, true)}</td>` : `<td class="sep ${cc(b.amtQp, 1e5)}">${money(b.amtQp, true)}</td>`}</tr>`).join('') + '</tbody>';
+    // tháng kWh/tấn vọt lên
+    const spikes = [];
+    for (const g of G) { const s = E.monthSeries(ts => E.qPerTon('dien', g, ts)); for (const a of E.anomalies(s, 0.06)) spikes.push({ g, ...a, v: s[a.t] }); }
+    spikes.sort((a, b) => b.r - a.r);
+    const sp = spikes.filter(s => s.r > 0).slice(0, 3);
+    const txt = hb ? `Toàn công ty dùng ${num(Bt.u1)} kWh/tấn (${pctS(Bt.u1 / Bt.u0 - 1)} so với gốc), giá điện bình quân ${num(Bt.p1)} đ/kWh (${pctS(Bt.p1 / Bt.p0 - 1)}). Trên số tấn kỳ này, phần dùng điện nhiều hơn tốn ${money(Bt.amtQ, true)}, phần giá điện ${money(Bt.amtP, true)}.` : '';
+    $('kwh-note').innerHTML = `<b>Ghi chú:</b> ${esc(D.notes.dien)}`;
+    $('kwh-call').innerHTML = `<div class="callout${sp.length ? '' : ' ok'}">${txt} ${sp.length ? 'Tháng kWh/tấn vọt so với BQ 3 tháng trước: ' + sp.map(s => `${s.g} ${lbl(s.t)} ${num(s.v)} kWh/t (${pctS(s.r)})`).join('; ') + '.' : 'Không có tháng nào kWh/tấn vọt quá 6% so với BQ 3 tháng trước.'}</div>`;
+  }
+
+  // ---------- 1b. Carton ----------
+  function renderCarton(P) {
+    $('ct-legend').innerHTML = `<span><i class="ln" style="background:var(--ink)"></i>Carton / tấn (nghìn đ)</span><span><i class="dot" style="border-color:var(--red)"></i>Kế hoạch</span><span>Mỗi nhóm một thang đo riêng</span>`;
+    $('ct-multi').innerHTML = G.map((g, i) => { const b = E.unitBridge('carton', g, P); return `<div><div class="mini-h"><b><i style="background:${GCOL[g]}"></i>${g}</b><span><span class="num">${perT(b.c1)}</span> <span class="d ${P.base ? cc(b.c1 - b.c0, 50) : ''}">${P.base ? pctS(b.c1 / b.c0 - 1) : ''}</span></span></div><div class="chart" id="cm-${i}"></div>
+      <div class="mini-f"><span>Thùng / tấn <span class="num">${num(b.u1, 1)}</span></span><span>Giá <span class="num">${num(b.p1)} đ/thùng</span></span></div></div>`; }).join('');
+    G.forEach((g, i) => lines($('cm-' + i), {
+      aria: 'Chi phí carton trên tấn ' + g, h: 200, series: [{ color: GCOL[g], vals: E.monthSeries(ts => E.perTon('carton', g, ts)) }], plans: [{ color: 'var(--red)', vals: E.monthSeries(ts => E.perTonPlan('carton', g, ts)) }],
+      fmt: v => N0.format(v / 1000), unit: 'nghìn đ/tấn', P, onPick: pickMonth,
+      tip: t => `<b>${g} · ${lbl(t)}${t > CUT ? ' · dự báo' : ''}</b>` + tr('Carton / tấn', perT(E.perTon('carton', g, [t]))) + tr('Thùng / tấn', num(E.qPerTon('carton', g, [t]), 1)) + tr('Giá thùng', num(E.unitPrice('carton', g, [t])) + ' đ') + tr('Kế hoạch / tấn', perT(E.perTonPlan('carton', g, [t]))),
+    }));
+    const hb = !!P.base, rows = G.map(g => ({ g, b: E.unitBridge('carton', g, P) })).concat([{ g: null, b: E.unitBridge('carton', null, P) }]);
+    $('ct-tbl').innerHTML = `<thead><tr><th>Nhóm</th>${hb ? '<th class="sep">Thùng/tấn gốc</th>' : ''}<th class="sep">Thùng/tấn</th><th>KH</th><th class="sep">đ/thùng</th>${hb ? '<th>Δ giá</th>' : ''}<th class="sep">Carton / tấn</th>${hb ? '<th>Δ vs gốc</th>' : ''}<th>Δ vs KH</th>${hb ? '<th class="sep">Do số thùng/tấn</th><th>Do giá thùng</th>' : ''}<th class="sep">Tiền carton</th></tr></thead><tbody>` +
+      rows.map(({ g, b }) => `<tr${g ? '' : ' class="sum"'}><td>${g ? `<i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;background:${GCOL[g]}"></i>${g}` : 'Toàn công ty'}</td>${hb ? `<td class="sep">${num(b.u0, 1)}</td>` : ''}<td class="sep">${num(b.u1, 1)}</td><td>${num(b.up, 1)}</td><td class="sep">${num(b.p1)}</td>${hb ? `<td class="${cc(b.p1 - b.p0, 5)}">${pctS(b.p1 / b.p0 - 1)}</td>` : ''}<td class="sep">${perT(b.c1)}</td>${hb ? `<td class="${cc(b.c1 - b.c0, 50)}">${perT(b.c1 - b.c0, true)}</td>` : ''}<td class="${cc(b.c1 - b.cp, 50)}">${perT(b.c1 - b.cp, true)}</td>${hb ? `<td class="sep ${cc(b.amtQ, 1e5)}">${money(b.amtQ, true)}</td><td class="${cc(b.amtP, 1e5)}">${money(b.amtP, true)}</td>` : ''}<td class="sep">${money(E.vAmt('carton', g, P.cur))}</td></tr>`).join('') + '</tbody>';
+    $('ct-note').innerHTML = `<b>Ghi chú:</b> ${esc(D.notes.carton)} Số thùng/tấn đổi theo cơ cấu mã hàng: mã nặng hơn thì ít thùng hơn trên mỗi tấn.`;
+  }
+
+  // ---------- 2. Định phí ----------
+  function renderFix(P) {
+    const cats = E.cats, ser = Object.fromEntries(cats.map(c => [c, E.fixedSeries(c)])), all = E.fixedSeries(null), pctView = S.fixView === 'pct';
+    $('fix-legend').innerHTML = cats.map(c => `<span><i style="background:${CATCOL[c]}"></i>${c}</span>`).join('') + (pctView ? '' : `<span><i class="dot" style="border-color:var(--red)"></i>Kế hoạch</span><span><i style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--red);border-radius:0;background:none"></i>Tháng lệch &gt;15% so với BQ 3 tháng trước</span>`);
+    bars($('fix-chart'), {
+      aria: 'Định phí theo tháng', stacks: cats.map(c => ({ color: CATCOL[c], vals: ser[c].a.map((v, t) => pctView ? v / all.a[t] * 100 : v) })), max: pctView ? 100 : null,
+      fmt: pctView ? (v => N0.format(v) + '%') : (v => N0.format(v / 1e6)), unit: pctView ? 'cơ cấu' : 'triệu đ',
+      plan: pctView ? null : { vals: all.p, color: 'var(--red)' }, P, marks: pctView ? [] : E.anomalies(all.a).map(a => a.t), onPick: pickMonth,
+      tip: t => `<b>${lbl(t)}${t > CUT ? ' · dự báo' : ''}</b>` + cats.map(c => tr(c, `${money(ser[c].a[t])} · ${pct(ser[c].a[t] / all.a[t], 0)}`, CATCOL[c])).join('') + tr('Tổng', money(all.a[t])) + tr('Kế hoạch', money(all.p[t])),
+    });
+    const mv = E.fixedMoves(P), t1 = sum(mv.map(m => m.cur)), t0 = P.base ? sum(mv.map(m => m.base)) : null, tp = sum(mv.map(m => m.plan)), hb = !!P.base;
+    $('fix-tbl').innerHTML = `<thead><tr><th>Nhóm định phí</th><th>${esc(P.curName)}</th>${hb ? `<th>${esc(P.baseName)}${P.norm ? ' (quy đổi)' : ''}</th><th>Chênh lệch</th><th>%</th>` : ''}<th>Tỷ trọng</th>${hb ? '<th>Đổi tỷ trọng</th>' : ''}<th>Kế hoạch</th><th>So với KH</th><th>Khoản kéo nhiều nhất</th></tr></thead><tbody>` +
+      mv.map(m => `<tr class="click${S.cat === m.cat ? ' on' : ''}" data-c="${esc(m.cat)}" tabindex="0"><td><i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;background:${CATCOL[m.cat]}"></i>${esc(m.cat)} <span style="color:var(--faint)">›</span></td><td>${money(m.cur)}</td>${hb ? `<td>${money(m.base)}</td><td class="${cc(m.d, 1e6)}">${money(m.d, true)}</td><td>${pctS(m.d / m.base)}</td>` : ''}<td>${pct(m.sh1)}</td>${hb ? `<td>${pts(m.sh1 - m.sh0)}</td>` : ''}<td>${money(m.plan)}</td><td class="${cc(m.dp, 1e6)}">${money(m.dp, true)}</td><td class="txt">${esc(m.driver.name)} ${money(m.driver[m.key], true)}${hb ? '' : ' vs KH'}</td></tr>`).join('') +
+      `<tr class="sum"><td>Tổng định phí</td><td>${money(t1)}</td>${hb ? `<td>${money(t0)}</td><td class="${cc(t1 - t0, 1e6)}">${money(t1 - t0, true)}</td><td>${pctS(t1 / t0 - 1)}</td>` : ''}<td>100%</td>${hb ? '<td></td>' : ''}<td>${money(tp)}</td><td class="${cc(t1 - tp, 1e6)}">${money(t1 - tp, true)}</td><td></td></tr></tbody>`;
+    $('fix-tbl').querySelectorAll('tr.click').forEach(r => { const go = () => { S.cat = r.dataset.c; save(); render(); $('chi-tiet').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; r.addEventListener('click', go); r.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }); });
+    // diễn giải: đổi hay không, cấu trúc, ở đâu
+    const n = P.cur.length;
+    let h = `Định phí ${esc(P.curName)} là <b>${money(t1)}</b>${n > 1 ? ` (BQ ${money(t1 / n)}/tháng)` : ''}`;
+    if (hb) {
+      const big = mv.slice().sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+      const shift = mv.slice().sort((a, b) => Math.abs(b.sh1 - b.sh0) - Math.abs(a.sh1 - a.sh0))[0];
+      h += `, <b class="${cc(t1 - t0)}">${money(t1 - t0, true)}</b> (${pctS(t1 / t0 - 1)}) so với ${esc(P.baseName)}. ${big.d >= 0 ? 'Tăng' : 'Giảm'} nhiều nhất là <b>${esc(big.cat)}</b> ${money(big.d, true)}, do ${esc(big.driver.name)} ${money(big.driver.d, true)}. Cấu trúc ${Math.abs(shift.sh1 - shift.sh0) < 0.01 ? 'gần như không đổi (không nhóm nào đổi quá 1 điểm tỷ trọng)' : `có dịch chuyển: ${esc(shift.cat)} chiếm ${pct(shift.sh1)} (${pts(shift.sh1 - shift.sh0)})`}.`;
+    } else h += '.';
+    const an = E.anomalies(all.a).filter(a => a.t <= CUT).slice(-3);
+    if (an.length) h += ' Tháng định phí lệch rõ so với BQ 3 tháng trước: ' + an.map(a => {
+      const c = cats.slice().sort((x, y) => Math.abs(ser[y].a[a.t] - (ser[y].a[a.t - 1] + ser[y].a[a.t - 2] + ser[y].a[a.t - 3]) / 3) - Math.abs(ser[x].a[a.t] - (ser[x].a[a.t - 1] + ser[x].a[a.t - 2] + ser[x].a[a.t - 3]) / 3))[0];
+      return `${lbl(a.t)} ${pctS(a.r, 0)} (chủ yếu ${c})`; }).join(', ') + '.';
+    $('fix-lede').innerHTML = h + fcTag(P);
+  }
+
+  // ---------- 2a. Bản đồ biến động ----------
+  function renderHeat(P) {
+    const mode = S.heat, rows = E.heat(mode), inCur = new Set(P.mode === 'm' ? P.cur : []), inBase = new Set(P.mode === 'm' && P.base ? P.base : []);
+    $('heat-q').textContent = mode === 'plan' ? 'Mỗi ô: khoản mục đó trong tháng đó chi cao hơn (đỏ) hay thấp hơn (xanh) kế hoạch. Ô xám: không có kế hoạch.' : 'Mỗi ô: khoản mục đó trong tháng đó cao hơn (đỏ) hay thấp hơn (xanh) mức thường của chính nó (trung vị 3 tháng liền trước). Bấm tên khoản để xem chi tiết nhóm, bấm một ô để chọn tháng đó.';
+    const lv = d => { if (d == null) return null; const a = Math.abs(d); return a < 5e6 ? 0 : a < 15e6 ? 1 : a < 40e6 ? 2 : a < 100e6 ? 3 : 4; };
+    const colr = d => { const l = lv(d); if (l == null) return 'var(--panel)'; if (l === 0) return 'var(--paper)'; const op = [0, .22, .45, .7, 1][l]; return `color-mix(in srgb, ${d > 0 ? 'var(--red)' : 'var(--navy)'} ${Math.round(op * 100)}%, var(--paper))`; };
+    $('heat-scale').innerHTML = `<span>Thấp hơn</span>${[100e6, 40e6, 15e6].map(v => `<i style="background:${colr(-v)}"></i>`).join('')}<i style="background:var(--paper);border:1px solid var(--line)"></i>${[15e6, 40e6, 100e6].map(v => `<i style="background:${colr(v)}"></i>`).join('')}<span>Cao hơn</span><span style="margin-left:10px">ngưỡng: 5 · 15 · 40 · 100 triệu đ · ${P.mode === 'm' ? 'khung nét đứt trên đầu cột: tháng so sánh · ' : ''}ô mờ: dự báo</span>`;
+    let cat = null; const o = [`<thead><tr><th></th>${D.months.map((mm, t) => `<th class="${t % 12 === 0 ? 'y' : ''}${inCur.has(t) ? ' sel' : inBase.has(t) ? ' selb' : ''}">${t % 12 === 0 ? 2025 + t / 12 : 'T' + (t % 12 + 1)}</th>`).join('')}</tr></thead><tbody>`];
+    for (const r of rows) {
+      if (r.cat !== cat) { cat = r.cat; o.push(`<tr class="cat"><td colspan="${NT + 1}"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;background:${CATCOL[cat]}"></i>${esc(cat)}</td></tr>`); }
+      o.push(`<tr data-c="${esc(r.cat)}" data-km="${r.km}"><td class="nm" tabindex="0" title="${esc(r.name)}">${esc(r.name)}<small>${r.km}</small></td>` + r.cells.map((c, t) => `<td class="${t > CUT ? 'fcm' : ''}" data-t="${t}" style="background:${colr(c.d)}"></td>`).join('') + '</tr>');
+    }
+    $('heat').innerHTML = o.join('') + '</tbody>';
+    const byKm = Object.fromEntries(rows.map(r => [r.km, r]));
+    $('heat').querySelectorAll('tbody tr[data-km]').forEach(row => {
+      const r = byKm[row.dataset.km];
+      const go = () => { S.cat = row.dataset.c; S.by[S.cat] = E.BY[S.cat].includes('km') ? 'km' : S.by[S.cat]; save(); render(); $('chi-tiet').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      row.querySelector('td.nm').addEventListener('click', go);
+      row.querySelector('td.nm').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+      row.querySelectorAll('td[data-t]').forEach(td => {
+        const t = +td.dataset.t, c = r.cells[t];
+        td.addEventListener('pointermove', ev => showTip(ev, `<b>${esc(r.name)} · ${lbl(t)}${t > CUT ? ' · dự báo' : ''}</b>` + tr('Thực tế', money(c.v)) + (c.ref == null ? tr(mode === 'plan' ? 'Kế hoạch' : 'Mức thường', '—') : tr(mode === 'plan' ? 'Kế hoạch' : 'Mức thường (trung vị 3T trước)', money(c.ref)) + tr('Chênh lệch', `${money(c.d, true)} (${pctS(c.r, 0)})`))));
+        td.addEventListener('pointerleave', hideTip);
+        td.addEventListener('click', () => { hideTip(); pickMonth(t); });
+      });
+    });
+  }
+
+  // ---------- 2b. Chi tiết nhóm ----------
+  function renderDrill(P) {
+    const cat = E.cats.includes(S.cat) ? S.cat : E.cats[0], ways = E.BY[cat], by = ways.includes(S.by[cat]) ? S.by[cat] : ways[0];
+    const nx = P.next, hasNext = nx != null, tEnd = P.cur[P.cur.length - 1], last3 = [tEnd - 2, tEnd - 1, tEnd].filter(t => t >= 0);
+    $('d-title').textContent = `Chi tiết: ${cat}`;
+    $('d-cats').innerHTML = E.cats.map(c => `<button type="button" data-c="${esc(c)}" aria-pressed="${c === cat}"><i style="background:${CATCOL[c]}"></i>${esc(c)}</button>`).join('');
+    $('d-cats').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.cat = b.dataset.c; save(); render(); }));
+    $('d-by').innerHTML = ways.map(w => `<button type="button" data-v="${w}" aria-pressed="${w === by}">Theo ${E.BY_NAME[w].toLowerCase()}</button>`).join('');
+    $('d-by').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.by[cat] = b.dataset.v; save(); render(); }));
+    $('d-sub').textContent = `Diễn biến 24 tháng, kỳ ${P.curName}${hasNext ? ' và kế hoạch ' + lbl(nx) : ''}`;
+    let br = E.fixedBreak(cat, by); const tot = E.fixedSeries(cat);
+    // biểu đồ: tối đa 8 lớp (7 lớn nhất + gộp phần còn lại) cho dễ đọc
+    let chartBr = br;
+    if (br.length > 8) { const rest = br.slice(7); chartBr = br.slice(0, 7).concat([{ name: `Còn lại (${rest.length})`, a: tot.a.map((_, t) => sum(rest.map(r => r.a[t]))), p: tot.p.map((_, t) => sum(rest.map(r => r.p[t]))) }]); }
+    const col = i => SUBCOL[i % SUBCOL.length];
+    $('d-legend').innerHTML = chartBr.map((r, i) => `<span><i style="background:${col(i)}"></i>${esc(r.name)}</span>`).join('') + `<span><i class="dot" style="border-color:var(--red)"></i>Kế hoạch ${esc(cat)}</span>`;
+    bars($('d-chart'), {
+      aria: 'Diễn biến ' + cat, stacks: chartBr.map((r, i) => ({ color: col(i), vals: r.a })), fmt: v => N0.format(v / 1e6), unit: 'triệu đ',
+      plan: { vals: tot.p, color: 'var(--red)' }, P, marks: E.anomalies(tot.a, 0.2).map(a => a.t), onPick: pickMonth,
+      tip: t => `<b>${esc(cat)} · ${lbl(t)}${t > CUT ? ' · dự báo' : ''}</b>` + chartBr.map((r, i) => tr(r.name, `${money(r.a[t])}${r.p[t] ? ' · KH ' + money(r.p[t]) : ''}`, col(i))).join('') + tr('Tổng', money(tot.a[t])) + tr('Kế hoạch', money(tot.p[t])),
+    });
+    // ô kế hoạch tháng tiếp theo
+    const avg3 = sum(last3.map(t => tot.a[t])) / last3.length;
+    $('d-next').innerHTML = hasNext ? [
+      ['BQ 3 tháng đến ' + lbl(tEnd), money(avg3), `<span style="color:var(--muted)">${last3.map(lbl).join(', ')}</span>`],
+      ['Kế hoạch ' + lbl(nx), money(tot.p[nx]), `<span class="${cc(tot.p[nx] - avg3, 1e6)}">${money(tot.p[nx] - avg3, true)}</span> <span style="color:var(--muted)">vs BQ 3 tháng</span>`],
+      [(nx > CUT ? 'Dự báo ' : 'Thực tế ') + lbl(nx), money(tot.a[nx]), `<span class="${cc(tot.a[nx] - tot.p[nx], 1e6)}">${money(tot.a[nx] - tot.p[nx], true)}</span> <span style="color:var(--muted)">vs KH</span>`],
+      ['Kỳ ' + P.curName, money(sum(P.cur.map(t => tot.a[t]))), `<span class="${cc(sum(P.cur.map(t => tot.a[t] - tot.p[t])), 1e6)}">${money(sum(P.cur.map(t => tot.a[t] - tot.p[t])), true)}</span> <span style="color:var(--muted)">vs KH</span>`],
+    ].map(k => `<div><span class="lbl">${esc(k[0])}</span><span class="val">${k[1]}</span><span class="d">${k[2]}</span></div>`).join('') : '';
+    // bảng
+    const hb = !!P.base, nm = t => `${lbl(t)}${fcMark(t)}`;
+    const head = `<thead><tr><th>${E.BY_NAME[by]}</th>${last3.map(t => `<th>${nm(t)}</th>`).join('')}<th>BQ 3 tháng</th>${hasNext ? `<th class="sep">KH ${lbl(nx)}</th><th>KH vs BQ 3T</th><th>${nx > CUT ? 'Dự báo' : 'Thực tế'} ${lbl(nx)}</th>` : ''}<th class="sep">Kỳ ${esc(P.curName)}</th>${hb ? '<th>Δ vs gốc</th>' : ''}<th>Δ vs KH</th></tr></thead>`;
+    const line = (name, a, p, s, extra) => {
+      const av = sum(last3.map(t => a[t])) / last3.length, c = sum(P.cur.map(t => a[t])), b = hb ? E.baseVal(P, ts => sum(ts.map(t => a[t]))) : null, pp = sum(P.cur.map(t => p[t]));
+      return `<tr${s ? ' class="sum"' : ''}><td>${esc(name)}${extra ? `<span style="display:block;font-size:11px;color:var(--faint)">${esc(extra)}</span>` : ''}</td>${last3.map(t => `<td class="${t > CUT ? 'fc' : ''}">${money(a[t])}</td>`).join('')}<td>${money(av)}</td>${hasNext ? `<td class="sep">${money(p[nx])}</td><td class="${cc(p[nx] - av, 1e6)}">${money(p[nx] - av, true)}</td><td class="${nx > CUT ? 'fc' : ''}">${money(a[nx])}</td>` : ''}<td class="sep">${money(c)}</td>${hb ? `<td class="${cc(c - b, 1e6)}">${money(c - b, true)}</td>` : ''}<td class="${cc(c - pp, 1e6)}">${money(c - pp, true)}</td></tr>`;
+    };
+    $('d-tbl').innerHTML = head + '<tbody>' + br.map(r => line(r.name, r.a, r.p, false, r.other ? r.members.join(', ') : '')).join('') + line('Tổng ' + cat, tot.a, tot.p, true) + '</tbody>';
+    // phần riêng của bảo dưỡng: máy × khoản mục
+    let extra = '';
+    if (cat === 'Bảo dưỡng & sửa chữa') {
+      const M = E.machineMatrix(P);
+      extra = `<div class="panel-h" style="margin-top:22px"><h3>Máy nào, khoản nào · ${esc(P.curName)}${hb ? ' so với ' + esc(P.baseName) : ''}</h3><span class="note">${hb ? 'số trong ngoặc: chênh lệch so với kỳ gốc' : ''}</span></div>
+        <div class="tbl-wrap"><table class="t"><thead><tr><th>Máy</th>${M.kms.map(k => `<th>${esc(k.name)}</th>`).join('')}<th class="sep">Tổng</th>${hb ? '<th>Δ vs gốc</th>' : ''}<th>Δ vs KH</th></tr></thead><tbody>` +
+        M.rows.slice().sort((a, b) => (hb ? Math.abs(b.tot.d) - Math.abs(a.tot.d) : b.tot.c - a.tot.c)).map(r => `<tr><td>${esc(r.name)}<span style="display:block;font-size:11px;color:var(--faint)">${esc(r.nhom)}</span></td>${r.cells.map(c => `<td>${c.c ? money(c.c) : '·'}${hb && Math.abs(c.d) >= 5e6 ? ` <span class="${cc(c.d)}" style="font-size:11px">(${money(c.d, true)})</span>` : ''}</td>`).join('')}<td class="sep">${money(r.tot.c)}</td>${hb ? `<td class="${cc(r.tot.d, 1e6)}">${money(r.tot.d, true)}</td>` : ''}<td class="${cc(r.tot.c - r.tot.p, 1e6)}">${money(r.tot.c - r.tot.p, true)}</td></tr>`).join('') + '</tbody></table></div>' +
+        `<p class="assume"><b>Ghi chú:</b> ${esc(D.notes.may)}</p>`;
+    }
+    $('d-extra').innerHTML = extra;
+    // nhận định
+    const items = E.fixedBreak(cat, ways.includes('km') ? 'km' : by);
+    const hits = [];
+    for (const it of items) for (const t of P.cur) if (t <= CUT) { const d = it.a[t] - it.p[t]; if (d > Math.max(20e6, 0.25 * it.p[t])) hits.push({ name: it.name, t, d, p: it.p[t] }); }
+    hits.sort((a, b) => b.d - a.d);
+    let call = '';
+    if (cat === 'Bảo dưỡng & sửa chữa') {
+      const ev = E.machineEvents().filter(e => e.d > 40e6 && P.cur.includes(e.t));
+      if (ev.length) call += `Chi phí vượt kế hoạch lớn nhất trong kỳ: ${ev.slice(0, 3).map(e => `${esc(e.may)} · ${esc(e.km)} ${lbl(e.t)} ${money(e.v)}${e.p ? '' : ' (không có trong kế hoạch)'}`).join('; ')}. `;
+    } else if (hits.length) call += `Vượt kế hoạch rõ nhất trong kỳ: ${hits.slice(0, 3).map(h => `${esc(h.name)} ${lbl(h.t)} ${money(h.d, true)}`).join('; ')}. `;
+    if (hasNext) {
+      const mover = br.map(r => ({ name: r.name, d: r.p[nx] - sum(last3.map(t => r.a[t])) / last3.length })).sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+      call += `Kế hoạch ${lbl(nx)} ${money(tot.p[nx])}, ${tot.p[nx] >= avg3 ? 'cao hơn' : 'thấp hơn'} BQ 3 tháng gần nhất ${money(Math.abs(tot.p[nx] - avg3))}; thay đổi lớn nhất ở ${esc(mover.name)} ${money(mover.d, true)}.`;
+      if (nx > CUT) call += ` Dự báo hiện tại ${money(tot.a[nx])} (${money(tot.a[nx] - tot.p[nx], true)} so với kế hoạch).`;
+    }
+    $('d-call').innerHTML = call ? `<div class="callout${hits.length || call.includes('vượt') ? '' : ' ok'}">${call}</div><p class="cl-hint">* tháng dự báo. Bấm một tháng trên biểu đồ để chọn Month so với cùng tháng năm trước.</p>` : '';
+  }
+
+  function renderMethod() {
+    $('method').innerHTML = `<div><h4>Biến phí sản xuất</h4><p>Gồm điện sản xuất (theo tổ Phôi, Chai, Nắp), bao bì carton, vật tư tiêu hao và vận chuyển NVL đầu vào, chia cho tấn sản xuất của từng nhóm. Không gồm hạt nhựa, phụ gia (xem trang Doanh thu &amp; Lợi nhuận gộp).</p><p>Điện và carton tách thành lượng × đơn giá: phần do lượng = (lượng/tấn kỳ này − kỳ gốc) × đơn giá kỳ gốc; phần do giá = lượng/tấn kỳ này × (đơn giá kỳ này − kỳ gốc); nhân với tấn kỳ này ra tiền. Hai phần cộng đúng bằng chênh lệch.</p></div>
+      <div><h4>Định phí</h4><p>Nhân sự: lương, tăng ca, BH bắt buộc, BH sức khoẻ, ba khoản thưởng trích trước (lương tháng 13, sales incentive, performance bonus), phúc lợi. FOH sản xuất: bảo hiểm tài sản, tu sửa nhỏ, môi trường, an ninh vệ sinh, công cụ dụng cụ, thuê kho ngoài, nước. Bảo dưỡng &amp; sửa chữa: định kỳ, phụ tùng, khuôn, sửa đột xuất, chia theo máy. Admin: tư vấn kiểm toán, văn phòng phẩm và IT, thuê văn phòng, phí ngân hàng, điện văn phòng.</p><p>Khi hai kỳ khác số tháng, kỳ gốc được quy về cùng số tháng với kỳ phân tích.</p></div>
+      <div><h4>Nguồn số</h4><p>${esc(D.nguon)}. Thực tế đến ${lbl(CUT)}; từ ${lbl(CUT + 1)} là dự báo (vẽ nhạt). Kế hoạch lấy từ ngân sách 2025–2026.</p><p>Tổng định phí và biến phí (trừ carton) khớp từng tháng với trang La bàn Quản trị, nên khớp EBITDA quản trị của lõi La bàn 19. Mọi số do engine tính; chữ chỉ diễn giải. Bản ${esc(D.version)}.</p></div>`;
+  }
+
+  setup(); render();
+})();
+</script>
+
+<script src="lb-shell.js"></script></body></html>

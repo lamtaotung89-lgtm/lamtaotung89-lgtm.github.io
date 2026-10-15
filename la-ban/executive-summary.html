@@ -1,0 +1,186 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex"><title>Executive summary</title>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="stylesheet" href="lb-shell.css"></head><body><header id="lbbar"><div class="lb-in">
+<a class="lb-home" href="index.html" title="Danh sách báo cáo"><svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 5 L17.5 14 L14 23 L10.5 14 Z" fill="#d62828"/><circle cx="14" cy="14" r="2" fill="#0b1d3a"/></svg>La bàn</a>
+<div class="lb-pick"><label for="lbsel">Báo cáo</label><select id="lbsel" aria-label="Chọn báo cáo"><optgroup label="Bộ báo cáo quản trị"><option value="kpi.html">KPI 1 trang</option><option value="ebitda.html">Tổng quan EBITDA</option><option value="doanh-thu.html">Doanh thu &amp; Lợi nhuận gộp</option><option value="bien-dinh-phi.html">Biến phí &amp; định phí</option><option value="tien.html">Tiền &amp; công nợ</option><option value="du-bao.html">Dự báo cả năm &amp; hành động</option></optgroup><optgroup label="La bàn Lợi nhuận"><option value="la-ban-v2.html">La bàn Lợi nhuận · Công ty mẫu v2</option><option value="la-ban-c.html">La bàn Lợi nhuận · Công ty mẫu C</option></optgroup><optgroup label="Báo cáo điều hành"><option value="executive-summary.html" selected>Executive summary</option></optgroup></select></div>
+<div class="lb-act"><button type="button" class="lb-btn" id="lbedit" aria-pressed="false" title="Đổi tên tiêu đề, cột, nhãn theo cách gọi của bạn"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14h3l8-8-3-3-8 8z M9.5 3.5l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Đổi tên đầu mục <span class="lb-n" id="lbcount"></span></button></div>
+</div></header>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:wght@600;700&display=swap">
+<style>
+/* Layout: bản ghi nhớ điều hành một cột 760px; dải kết luận → 4 chỉ số → What / Why / Now What → quyết định của CEO */
+:root{
+  --bg:#f6f7f9; --paper:#ffffff; --ink:#14213a; --muted:#5b6578; --line:#dde2ea;
+  --navy:#1d3b6e; --red:#b42318; --red-soft:#fbe9e7; --green:#1c6b45; --green-soft:#e6f3ec; --amber:#a15c07; --amber-soft:#fdf1df;
+  --f-display:"Noto Serif",Georgia,"Times New Roman",serif;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1420; --paper:#161d2b; --ink:#e7ebf3; --muted:#9aa4b6; --line:#2a3345;
+  --navy:#8fb0e8; --red:#f0836f; --red-soft:#3a1f1d; --green:#6fcf9b; --green-soft:#16302a; --amber:#f0b45a; --amber-soft:#3a2c16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1420; --paper:#161d2b; --ink:#e7ebf3; --muted:#9aa4b6; --line:#2a3345;
+  --navy:#8fb0e8; --red:#f0836f; --red-soft:#3a1f1d; --green:#6fcf9b; --green-soft:#16302a; --amber:#f0b45a; --amber-soft:#3a2c16; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus-visible{color:var(--navy);border-color:var(--navy);outline:none}
+nav b{color:var(--ink);font-weight:600}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--f-display);font-size:clamp(26px,5vw,34px);line-height:1.2;margin:6px 0 10px;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:21px;line-height:1.3;margin:0 0 4px;text-wrap:balance}
+.lead{font-size:16.5px;max-width:65ch;margin:0}
+.meta{font-size:13px;color:var(--muted);margin-top:10px}
+p{margin:0;max-width:66ch}
+section{display:flex;flex-direction:column;gap:14px}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.kpi{background:var(--paper);padding:14px 14px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .k{font-size:12px;color:var(--muted);line-height:1.35}
+.kpi .v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .v small{font-size:13px;font-weight:500;color:var(--muted)}
+.d{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.up{color:var(--green)} .dn{color:var(--red)} .warn{color:var(--amber)}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.drivers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:640px){.drivers{grid-template-columns:1fr}}
+.drv{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.drv .n{font-size:22px;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums}
+.drv h3{margin:0;font-size:14.5px}
+.drv p{font-size:13.5px;color:var(--muted)}
+.fig{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.fig .cap{font-size:13px;color:var(--muted)}
+.bar{display:flex;height:34px;border-radius:4px;overflow:hidden;font-size:11.5px;font-weight:600}
+.bar span{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;min-width:0}
+.s1{background:var(--green)} .s2{background:color-mix(in srgb,var(--green) 70%,var(--paper))} .s3{background:color-mix(in srgb,var(--green) 45%,var(--paper))}
+.s4{background:var(--red-soft);color:var(--red);border:1px dashed var(--red)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.run{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;font-size:13px;font-variant-numeric:tabular-nums}
+.run .t{height:14px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+.tbl{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.p-red{background:var(--red-soft);color:var(--red)} .p-amb{background:var(--amber-soft);color:var(--amber)} .p-grn{background:var(--green-soft);color:var(--green)}
+.decision{border:2px solid var(--ink);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;background:var(--paper)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13.5px}
+.opt b{display:block;margin-bottom:4px}
+.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+a.more{color:var(--navy);font-size:13px;font-weight:600;text-decoration:none}
+a.more:hover,a.more:focus-visible{text-decoration:underline;outline:none}
+</style>
+
+<div class="wrap">
+  
+
+  <header>
+    <div class="eyebrow">Báo cáo điều hành · Kính gửi Ban Tổng Giám đốc</div>
+    <h1>Bán nhiều hơn kế hoạch, nhưng EBITDA thiếu 1,37 tỷ và quỹ tiền có một tuần dưới mức an toàn</h1>
+    <p class="lead">Chín tháng đầu năm doanh thu vượt kế hoạch 3,13 tỷ. Giá NVL, hao hụt và định phí ăn hết phần tăng này. Ba hành động sẵn có chỉ bù khoảng 228 triệu; phần còn lại cần CEO quyết định.</p>
+    <div class="meta">Thực tế đến T9/2026 · T10–T12 là dự báo · Đơn vị: tỷ đồng (tr = triệu đồng) · Dữ liệu mẫu v3</div>
+  </header>
+
+  <div class="kpis" role="list">
+    <div class="kpi" role="listitem"><span class="k">Doanh thu 9 tháng</span><span class="v">46,23</span><span class="d up">+3,13 vs KH · +6,62 vs cùng kỳ</span></div>
+    <div class="kpi" role="listitem"><span class="k">EBITDA quản trị 9 tháng</span><span class="v">3,95 <small>8,6%</small></span><span class="d dn">−2,22 vs KH · 7/9 tháng hụt</span></div>
+    <div class="kpi" role="listitem"><span class="k">EBITDA cả năm (forecast)</span><span class="v">7,36</span><span class="d dn">−1,37 vs KH 8,72</span></div>
+    <div class="kpi" role="listitem"><span class="k">Tiền thấp nhất 13 tuần tới</span><span class="v">266 <small>tr</small></span><span class="d warn">Dưới ngưỡng an toàn 500 tr</span></div>
+  </div>
+
+  <section aria-labelledby="s-what">
+    <span class="tag">What · Kết quả</span>
+    <h2 id="s-what">Doanh thu tốt, lợi nhuận không theo kịp</h2>
+    <p>Sản lượng bán 594 tấn, vượt kế hoạch khoảng 46 tấn; giá bán đóng góp thêm khoảng 3,01 tỷ so với cùng kỳ. Thị trường vẫn hấp thụ được sản lượng.</p>
+    <p>EBITDA quản trị chỉ đạt 3,95 tỷ, biên 8,6%. Công ty bán nhiều hơn nhưng lời ít hơn trên mỗi đồng doanh thu. LN gộp khoảng 14,02 tỷ, cao hơn cùng kỳ nhưng thấp hơn kế hoạch; LN đóng góp thiếu ngân sách 812 triệu.</p>
+    <a class="more" href="ebitda.html">Xem cầu EBITDA →</a>
+  </section>
+
+  <section aria-labelledby="s-why">
+    <span class="tag">Why · Nguyên nhân</span>
+    <h2 id="s-why">Ba nhóm chi phí triệt tiêu phần tăng từ sản lượng và giá</h2>
+    <div class="drivers">
+      <div class="drv"><span class="n">~1,0 tỷ</span><h3>Giá bán chưa bù giá NVL</h3><p>Giá NVL làm chi phí tăng khoảng 4,01 tỷ, giá bán bù được 3,01 tỷ. Phôi PET 18g thiếu bù nhiều nhất.</p></div>
+      <div class="drv"><span class="n">3,0%</span><h3>Hao hụt sản xuất tăng</h3><p>Ba tháng gần nhất 3,0% định mức NVL, năm trước 2,6%. Ưu tiên xử lý nhóm Chai.</p></div>
+      <div class="drv"><span class="n">+1,43 tỷ</span><h3>Định phí vượt ngân sách</h3><p>Forecast cả năm. Sửa chữa đột xuất vượt lũy kế khoảng 506 tr, lương vượt khoảng 658 tr.</p></div>
+    </div>
+    <a class="more" href="bien-dinh-phi.html">Xem định phí và hao hụt →</a>
+  </section>
+
+  <section aria-labelledby="s-fc">
+    <span class="tag">Forecast · Cả năm</span>
+    <h2 id="s-fc">Doanh thu và LN gộp vượt kế hoạch, EBITDA thì không</h2>
+    <p>Doanh thu cả năm dự kiến 65,00 tỷ (vượt 5,94 tỷ), LN gộp 20,18 tỷ (vượt 189 tr). EBITDA chỉ 7,36 tỷ so với mục tiêu 8,72 tỷ. Khả năng đạt đủ target EBITDA năm với kế hoạch hiện tại là thấp, và đây là việc cần quyết định quản trị, không chỉ là việc Sales bán thêm.</p>
+    <div class="fig">
+      <div class="cap">EBITDA bình quân mỗi tháng, T10–T12/2026 (tỷ đồng)</div>
+      <div class="run">
+        <span>Cần để đạt KH</span><div class="t" style="width:100%;background:var(--navy)"></div><b>1,59</b>
+        <span>Forecast</span><div class="t" style="width:71%;background:var(--red)"></div><b>1,13</b>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-risk">
+    <span class="tag">Rủi ro</span>
+    <h2 id="s-risk">Giá NVL, tập trung khách hàng và dòng tiền</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Rủi ro</th><th class="num">Tác động</th><th>Mức</th></tr></thead>
+      <tbody>
+        <tr><td>Giá NVL +10% trong một quý, chưa chỉnh giá bán. Kỳ chốt giá tiếp theo T2/2027 nên chi phí tăng đi thẳng vào biên.</td><td class="num">−849 tr EBITDA</td><td><span class="pill p-red">Cao</span></td></tr>
+        <tr><td>Mất Masan Consumer. Masan, ULVN và Coca-Cola chiếm phần lớn lợi nhuận.</td><td class="num">−3,65 tỷ LN đóng góp / 12 tháng</td><td><span class="pill p-red">Cao</span></td></tr>
+        <tr><td>Pepsi doanh thu cao nhưng biên LN thực chỉ 15,3%, thấp hơn nhiều mức bình quân công ty.</td><td class="num">Cần rà soát</td><td><span class="pill p-amb">Trung bình</span></td></tr>
+        <tr><td>Công suất mùa cao điểm khi bán thêm sản lượng.</td><td class="num">Ràng buộc ≤ 95%</td><td><span class="pill p-amb">Trung bình</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="s-cash">
+    <span class="tag">Thanh khoản</span>
+    <h2 id="s-cash">Chưa khủng hoảng, nhưng có điểm rơi trong quý IV</h2>
+    <p>Dòng tiền hoạt động 9 tháng dương 4,64 tỷ, bằng 117% EBITDA: lợi nhuận vận hành đã thành tiền. Tiền cuối T9 còn 2,28 tỷ sau khi chia lợi nhuận 3,20 tỷ và đầu tư TSCĐ 2,42 tỷ. Phải thu 12,13 tỷ, quá hạn 1,32 tỷ. Coca-Cola trả chậm hơn cùng kỳ gần 19 ngày, giữ lại khoảng 593 tr tiền mặt.</p>
+    <a class="more" href="tien.html">Xem dự báo tiền 13 tuần →</a>
+  </section>
+
+  <section aria-labelledby="s-act">
+    <span class="tag">Now What · Hành động</span>
+    <h2 id="s-act">Ba việc làm ngay bù được khoảng 228 triệu</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Hành động</th><th>Phụ trách</th><th class="num">EBITDA 2026</th></tr></thead>
+      <tbody>
+        <tr><td>Chốt thêm 5% sản lượng Nắp, Chai, Phôi, chỉ vào khách và mã hàng có biên thực tốt</td><td>Sales, COO</td><td class="num">+152 tr</td></tr>
+        <tr><td>Đưa hao hụt về 2,6%, tập trung nhóm Chai</td><td>COO</td><td class="num">+44 tr</td></tr>
+        <tr><td>Cổng phê duyệt sửa chữa đột xuất, đưa chi phí 3 tháng cuối về ngân sách</td><td>COO, CFO</td><td class="num">+32 tr</td></tr>
+        <tr><td><b>Còn thiếu sau ba việc</b></td><td></td><td class="num dn"><b>≈ 1,13 tỷ</b></td></tr>
+      </tbody>
+    </table></div>
+    <div class="fig">
+      <div class="cap">Khoảng thiếu EBITDA 1,37 tỷ được lấp tới đâu</div>
+      <div class="bar" role="img" aria-label="Ba hành động lấp 228 triệu, còn khoảng 1,13 tỷ chưa có giải pháp">
+        <span class="s1" style="flex:152"></span><span class="s2" style="flex:44"></span><span class="s3" style="flex:32"></span><span class="s4" style="flex:1130">Chưa có giải pháp ≈ 1,13 tỷ</span>
+      </div>
+      <div class="legend"><span><i class="s1"></i>Bán thêm 152 tr</span><span><i class="s2"></i>Hao hụt 44 tr</span><span><i class="s3"></i>Sửa chữa 32 tr</span></div>
+    </div>
+    <p><b>Tiền:</b> CFO thu tối thiểu 50% nợ quá hạn (khoảng 661 tr) và Sales đưa Coca-Cola về tốc độ thanh toán như cùng kỳ (khoảng 593 tr). Hai việc giải phóng khoảng 1,25 tỷ, đưa tuần thấp nhất từ 266 tr lên khoảng 1,52 tỷ.</p>
+    <a class="more" href="du-bao.html">Giao việc, hạn và mức thực hiện →</a>
+  </section>
+
+  <div class="decision" role="region" aria-labelledby="s-dec">
+    <span class="tag">Cần CEO quyết định</span>
+    <h2 id="s-dec">Xử lý phần thiếu 1,13 tỷ không có đòn bẩy hiện hữu</h2>
+    <div class="opts">
+      <div class="opt"><b>Phương án A · Chấp nhận hụt</b>Báo hụt kế hoạch 2026, chuyển phần phục hồi vào kế hoạch 2027 (mục tiêu EBITDA 9,28 tỷ).</div>
+      <div class="opt"><b>Phương án B · Tái cơ cấu</b>Mở chương trình ngoài ngân sách hiện tại về chi phí, nhân sự và danh mục khách hàng.</div>
+    </div>
+  </div>
+
+  <div class="foot">Số liệu từ bộ báo cáo quản trị v3 (lõi 19.3.0), đối chiếu chéo khớp giữa các trang. Dữ liệu mô phỏng, không phải số thật của doanh nghiệp.</div>
+</div>
+
+<script src="lb-shell.js"></script></body></html>
