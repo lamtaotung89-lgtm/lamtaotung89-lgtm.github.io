@@ -260,18 +260,19 @@ select.fm-in { width: auto; }
         <h2>Báo cáo</h2>
         <nav class="fm-tabs" id="fm-tabs" aria-label="Các trang báo cáo">
           <button type="button" data-page="dieu-hanh"><b>00</b>Điều hành</button>
-          <button type="button" data-page="tong-quan"><b>01</b>Tổng quan bán hàng &amp; lợi nhuận</button>
-          <button type="button" data-page="pl-kenh-vung"><b>02</b>P&amp;L kênh × vùng</button>
+          <button type="button" data-page="ebitda"><b>01</b>Tổng quan EBITDA</button>
+          <button type="button" data-page="tong-quan"><b>02</b>Tổng quan bán hàng &amp; lợi nhuận</button>
+          <button type="button" data-page="pl-kenh-vung"><b>03</b>P&amp;L kênh × vùng</button>
           <div class="fm-sub-tabs" id="pl-chuong">
             <button type="button" data-ch="pl">Lời lỗ theo kênh, vùng</button>
             <button type="button" data-ch="cau">Vì sao lợi nhuận đổi</button>
             <button type="button" data-ch="dfr">DFR &amp; trade spend</button>
             <button type="button" data-ch="kho">Cận date, công nợ, tiền</button>
           </div>
-          <button type="button" data-page="gia-von"><b>03</b>Giá vốn, chi phí &amp; công suất</button>
-          <button type="button" data-page="du-bao"><b>04</b>Dự báo cả năm &amp; hành động</button>
-          <button type="button" data-page="tien-cong-no"><b>05</b>Tiền &amp; công nợ</button>
-          <button type="button" data-page="gia-ban-khach"><b>06</b>Giá bán, sản phẩm &amp; khách hàng</button>
+          <button type="button" data-page="gia-von"><b>04</b>Giá vốn, chi phí &amp; công suất</button>
+          <button type="button" data-page="du-bao"><b>05</b>Dự báo cả năm &amp; hành động</button>
+          <button type="button" data-page="tien-cong-no"><b>06</b>Tiền &amp; công nợ</button>
+          <button type="button" data-page="gia-ban-khach"><b>07</b>Giá bán, sản phẩm &amp; khách hàng</button>
         </nav>
       </section>
       <section>
@@ -294,7 +295,7 @@ select.fm-in { width: auto; }
       </section>
       <section class="kv-only"><h2>Kênh</h2><div class="fm-checks" id="f-kenh" data-source="fmcg"></div></section>
       <section class="kv-only"><h2>Vùng</h2><div class="fm-checks" id="f-vung" data-source="fmcg"></div></section>
-      <p class="fm-hint soft" id="kv-off">Trang này tính cho toàn công ty; lọc kênh, vùng có ở trang 01.</p>
+      <p class="fm-hint soft" id="kv-off">Trang này tính cho toàn công ty; lọc kênh, vùng có ở trang 02.</p>
       <button type="button" class="fm-reset" id="fm-reset">Đặt lại bộ lọc</button>
       <section class="fm-notes kv-only" id="ghi-chu"><h2>Ghi chú chính</h2><ul id="fm-notes" data-source="fmcg"></ul></section>
     </aside>
@@ -342,13 +343,42 @@ select.fm-in { width: auto; }
         <div><b>Phương án B</b><p id="x-pa-b" data-source="fmcg"></p></div>
         <div id="x-pa-c-box"><b>Máy mới dây chuyền 1</b><p id="x-pa-c" data-source="fmcg"></p></div>
       </div>
-      <p class="note">Hai phương án để Ban Tổng giám đốc chọn, cùng kết luận về đầu tư máy mới; số tính từ trang 04, đứng ở tháng cuối kỳ đang chọn.</p>
+      <p class="note">Hai phương án để Ban Tổng giám đốc chọn, cùng kết luận về đầu tư máy mới; số tính từ trang 05, đứng ở tháng cuối kỳ đang chọn.</p>
+    </section>
+  </div>
+</section>
+
+<section class="fm-page" id="ebitda" data-page hidden>
+  <div class="fm-ph"><span class="no">01</span><div><h2>Tổng quan EBITDA</h2><p class="q">Lời bao nhiêu so với cùng kỳ và kế hoạch, vì sao đổi, cuối năm đứng ở đâu, có khớp sổ kế toán không.</p></div></div>
+  <p class="fm-take dash-skeleton" id="eb-take" data-source="fmcg"></p>
+  <div class="fm-kpis" id="eb-kpis" data-source="fmcg"></div>
+  <div class="fm-grid">
+    <section class="fm-card fm-span3" id="eb-thang">
+      <h3>EBITDA theo tháng</h3>
+      <div class="fm-legend"><span><i style="background:var(--color-fg)"></i>Thực tế</span><span><i style="background:var(--cds-chart-muted)"></i>Dự báo</span><span><i class="ln" style="background:var(--fm-red)"></i>Kế hoạch</span><span>Nền đậm = kỳ đang chọn</span></div>
+      <p class="note" id="eb-month-n"></p>
+      <div class="fm-chart" id="eb-month" data-source="fmcg"></div>
+    </section>
+    <section class="fm-card fm-span3" id="eb-vi-sao">
+      <h3>Vì sao EBITDA thay đổi</h3>
+      <p class="note" id="eb-why-n"></p>
+      <div class="fm-bridge" id="eb-bridge" data-source="fmcg"></div>
+    </section>
+    <section class="fm-card fm-span3" id="eb-cuoi-nam">
+      <h3 id="eb-nam-h">Cuối năm đứng ở đâu</h3>
+      <p class="note" id="eb-nam-n"></p>
+      <div class="fm-tbl-wrap"><table class="fm-tbl" id="eb-nam-t" data-source="fmcg"></table></div>
+    </section>
+    <section class="fm-card fm-span3" id="eb-ke-toan">
+      <h3>EBITDA quản trị khớp sổ kế toán?</h3>
+      <p class="note" id="eb-kt-n"></p>
+      <div class="fm-tbl-wrap"><table class="fm-tbl" id="eb-kt-t" data-source="fmcg"></table></div>
     </section>
   </div>
 </section>
 
 <section class="fm-page" id="tong-quan" data-page hidden>
-  <div class="fm-ph"><span class="no">01</span><div><h2>Tổng quan bán hàng &amp; lợi nhuận</h2><p class="q">Bán được bao nhiêu, ở kênh và vùng nào, còn lại bao nhiêu sau chi phí trực tiếp?</p></div></div>
+  <div class="fm-ph"><span class="no">02</span><div><h2>Tổng quan bán hàng &amp; lợi nhuận</h2><p class="q">Bán được bao nhiêu, ở kênh và vùng nào, còn lại bao nhiêu sau chi phí trực tiếp?</p></div></div>
   <p class="fm-take dash-skeleton" id="fm-take" data-source="fmcg"></p>
   <div class="fm-kpis" id="kpi" data-source="fmcg">
     <div class="fm-kpi" id="k-vol"><div class="k-l">Sản lượng</div><div class="k-v dash-skeleton"></div><div class="k-u">nghìn thùng UC</div><div class="k-d"></div></div>
@@ -414,12 +444,12 @@ select.fm-in { width: auto; }
 </section>
 
 <section class="fm-page" id="pl-kenh-vung" data-page hidden>
-  <div class="fm-ph"><span class="no">02</span><div><h2>P&amp;L kênh × vùng</h2><p class="q">Kênh, vùng nào lời, nào lỗ; vì sao lợi nhuận đổi; chiết khấu có mua được sản lượng; hàng cận date, công nợ và tiền.</p></div></div>
+  <div class="fm-ph"><span class="no">03</span><div><h2>P&amp;L kênh × vùng</h2><p class="q">Kênh, vùng nào lời, nào lỗ; vì sao lợi nhuận đổi; chiết khấu có mua được sản lượng; hàng cận date, công nợ và tiền.</p></div></div>
   <div class="fm-host dash-skeleton" id="host-pl" data-source="fmcg"></div>
 </section>
 
 <section class="fm-page" id="gia-von" data-page hidden>
-  <div class="fm-ph"><span class="no">03</span><div><h2>Giá vốn, chi phí &amp; công suất</h2><p class="q">Giá vốn thực vượt chuẩn vì giá nguyên liệu, hao hụt, chế biến hay sản lượng; nhà máy dùng bao nhiêu công suất; tồn kho và chi phí cố định so với kế hoạch.</p></div></div>
+  <div class="fm-ph"><span class="no">04</span><div><h2>Giá vốn, chi phí &amp; công suất</h2><p class="q">Giá vốn thực vượt chuẩn vì giá nguyên liệu, hao hụt, chế biến hay sản lượng; nhà máy dùng bao nhiêu công suất; tồn kho và chi phí cố định so với kế hoạch.</p></div></div>
   <p class="fm-take dash-skeleton" id="gv-take" data-source="fmcg"></p>
   <div class="fm-kpis" id="gv-kpis" data-source="fmcg"></div>
   <div class="fm-grid">
@@ -497,7 +527,7 @@ select.fm-in { width: auto; }
 </section>
 
 <section class="fm-page" id="du-bao" data-page hidden>
-  <div class="fm-ph"><span class="no">04</span><div><h2>Dự báo cả năm &amp; hành động</h2><p class="q">Cuối năm đứng ở đâu so với kế hoạch; hành động nào, ai làm, hạn nào, lấp được bao nhiêu; phần nào chưa có giải pháp; tiền 13 tuần và rủi ro.</p></div></div>
+  <div class="fm-ph"><span class="no">05</span><div><h2>Dự báo cả năm &amp; hành động</h2><p class="q">Cuối năm đứng ở đâu so với kế hoạch; hành động nào, ai làm, hạn nào, lấp được bao nhiêu; phần nào chưa có giải pháp; tiền 13 tuần và rủi ro.</p></div></div>
   <p class="fm-take dash-skeleton" id="db-take" data-source="fmcg"></p>
   <div class="fm-kpis" id="db-kpis" data-source="fmcg"></div>
   <div class="fm-grid">
@@ -554,7 +584,7 @@ select.fm-in { width: auto; }
 </section>
 
 <section class="fm-page" id="tien-cong-no" data-page hidden>
-  <div class="fm-ph"><span class="no">05</span><div><h2>Tiền &amp; công nợ</h2><p class="q">Lãi có thành tiền không; tiền đi đâu trong kỳ; phải thu, phải trả, khách nào trả chậm dần; so với cùng kỳ, kế hoạch và forecast.</p></div></div>
+  <div class="fm-ph"><span class="no">06</span><div><h2>Tiền &amp; công nợ</h2><p class="q">Lãi có thành tiền không; tiền đi đâu trong kỳ; phải thu, phải trả, khách nào trả chậm dần; so với cùng kỳ, kế hoạch và forecast.</p></div></div>
   <p class="fm-take dash-skeleton" id="tc-take" data-source="fmcg"></p>
   <div class="fm-kpis" id="tc-kpis" data-source="fmcg"></div>
   <div class="fm-grid">
@@ -589,7 +619,7 @@ select.fm-in { width: auto; }
 </section>
 
 <section class="fm-page" id="gia-ban-khach" data-page hidden>
-  <div class="fm-ph"><span class="no">06</span><div><h2>Giá bán, sản phẩm &amp; khách hàng</h2><p class="q">Giá bán có theo kịp giá nguyên vật liệu không; doanh thu đổi vì sản lượng, cơ cấu hay giá; khách nào thật sự có lãi sau chiết khấu và chi phí vốn công nợ; trade spend tăng ở loại nào.</p></div></div>
+  <div class="fm-ph"><span class="no">07</span><div><h2>Giá bán, sản phẩm &amp; khách hàng</h2><p class="q">Giá bán có theo kịp giá nguyên vật liệu không; doanh thu đổi vì sản lượng, cơ cấu hay giá; khách nào thật sự có lãi sau chiết khấu và chi phí vốn công nợ; trade spend tăng ở loại nào.</p></div></div>
   <p class="fm-take dash-skeleton" id="gb-take" data-source="fmcg"></p>
   <div class="fm-kpis" id="gb-kpis" data-source="fmcg"></div>
   <div class="fm-grid">
@@ -833,7 +863,7 @@ window.FM = (function () {
 
 </script>
 <script>
-// Vận hành dây chuyền (lõi 19.9): số dùng chung cho trang 03 (vận hành), 04 (hành động, đầu tư) và 00 (quyết định).
+// Vận hành dây chuyền (lõi 19.9): số dùng chung cho trang 04 (vận hành), 05 (hành động, đầu tư) và 00 (quyết định).
 // Một chỗ tính để cùng một chỉ số ra cùng một con số ở mọi trang.
 (function () {
   const FM = window.FM, sum = FM.sumR;
@@ -919,7 +949,7 @@ window.FM = (function () {
 // Khung bộ báo cáo: tab, bộ lọc dùng chung (kỳ, so với, kênh, vùng), gọi trang đang mở vẽ lại khi số hoặc lựa chọn đổi.
 window.FMP = (function () {
   const FM = window.FM, $ = s => document.querySelector(s);
-  const pages = {}, order = ['dieu-hanh', 'tong-quan', 'pl-kenh-vung', 'gia-von', 'du-bao', 'tien-cong-no', 'gia-ban-khach'];
+  const pages = {}, order = ['dieu-hanh', 'ebitda', 'tong-quan', 'pl-kenh-vung', 'gia-von', 'du-bao', 'tien-cong-no', 'gia-ban-khach'];
   let cur = null, M = null;
   const register = pg => { pages[pg.id] = pg; };
   const params = () => FM.P(dash.params());
@@ -1008,6 +1038,148 @@ window.FMP = (function () {
     if (h && document.getElementById(h) && !pages[h]) setTimeout(() => document.getElementById(h).scrollIntoView(), 300);
   }
   return { register, start, show, current: () => cur, params };
+})();
+
+</script>
+<script>
+// Tab 01 "Tổng quan EBITDA": lời bao nhiêu so với cùng kỳ và kế hoạch, vì sao, cuối năm đứng ở đâu, có khớp sổ kế toán không.
+// Trả lời CEO, CFO. Toàn công ty, không theo kênh/vùng. Số lấy từ cùng mô hình với các tab khác (M.tong, M.nst).
+(function () {
+  const FM = window.FM, FMP = window.FMP, fx = FM.fx, C = FM.C, $ = s => document.querySelector(s);
+  const sum = FM.sumR;
+  const V = (M, side, k) => { if (!side) return null; const O = side.src === 'plan' ? M.nst : M.tong;
+    if (k === 'sdd_net') return sum(O.sd_dinh, side.r) - sum(O.kh_trong_sd, side.r);
+    return O[k] ? sum(O[k], side.r) : (side.src === 'plan' ? 0 : null); };
+
+  function sides(M, per) {
+    const plan = per.plan, ly = per.a[0] - 12 >= 0 ? { src: 'act', r: [per.a[0] - 12, per.a[1] - 12] } : null;
+    const ref = per.cmp ? (per.cmp.src === 'plan' ? plan : ly) : (plan || ly);
+    return { plan, ly, ref, isPlan: ref && ref.src === 'plan' };
+  }
+
+  function kpis(M, per, S) {
+    const box = $('#eb-kpis'); box.replaceChildren();
+    const tile = (lbl, v, unit, d, cls, go) => { const t = FM.el('div', 'fm-kpi' + (go ? ' go' : '')); if (go) t.dataset.go = go; t.append(FM.el('div', 'k-l', lbl), FM.el('div', 'k-v', v), FM.el('div', 'k-u', unit), FM.el('div', 'k-d ' + (cls || ''), d)); box.append(t); };
+    const cur = per.cur, e = V(M, cur, 'ebitda'), n = V(M, cur, 'nsr');
+    const eL = V(M, S.ly, 'ebitda'), eP = V(M, S.plan, 'ebitda');
+    tile(`EBITDA ${per.lbl}`, fx.tyN(e), 'tỷ đồng', S.ly ? `${fx.sTy(e - eL)} so cùng kỳ` : 'không có cùng kỳ', S.ly ? FM.deltaCls(e - eL, true) : '');
+    tile('So với kế hoạch kỳ', S.plan ? fx.pct(FM.div(e, eP), 0) : '—', S.plan ? `kế hoạch ${fx.tyN(eP)} tỷ` : 'kỳ này không có kế hoạch', S.plan ? fx.sTy(e - eP) : '', S.plan ? FM.deltaCls(e - eP, true) : '');
+    const m = FM.div(e, n), mL = S.ly ? FM.div(eL, V(M, S.ly, 'nsr')) : null;
+    tile('Biên EBITDA', fx.pct(m), '% doanh thu thuần', mL != null ? `${fx.pp(m - mL)} so cùng kỳ` : '', mL != null ? FM.deltaCls(m - mL, true) : '');
+    const R = FMP.planAt ? FMP.planAt(M, per.a[1]) : null;
+    if (R && R.planEBITDA) tile(`EBITDA cả năm ${R.yr}`, fx.tyN(R.fcEBITDA), 'tỷ đồng, thực tế + dự báo', `đạt ${fx.pct(FM.div(R.fcEBITDA, R.planEBITDA), 0)} KH ${fx.tyN(R.planEBITDA)}`, R.fcEBITDA < R.planEBITDA ? 'down' : 'up', 'du-bao');
+    const ek = V(M, cur, 'ebitda_ke_toan');
+    tile('EBITDA theo sổ kế toán', fx.tyN(ek), 'tỷ đồng', `chênh quản trị ${fx.sTy(ek - e)} (tồn kho)`, '');
+    return { e, eL, eP, m, R };
+  }
+
+  function month(M, per) {
+    const box = $('#eb-month'), card = box.closest('.fm-card'), tip = FM.tipFor(card), T = M.tong, NS = M.nst;
+    const ts = d3.range(0, M.N), D = ts.map(t => ({ t, v: T.ebitda[t] || 0, p: M.planT.has(t) && NS.ebitda ? NS.ebitda[t] : null, m: FM.div(T.ebitda[t], T.nsr[t]) }));
+    const inP = t => t >= per.a[0] && t <= per.a[1];
+    const { svg, w, h } = FM.svgIn(box, 240);
+    const lo = Math.min(0, d3.min(D, d => d.v)), hi = d3.max(D, d => Math.max(d.v, d.p || 0));
+    const y = d3.scaleLinear([lo * 1.15, hi * 1.12], [h - 24, 10]).nice();
+    const l = Math.ceil(d3.max(y.ticks(4), v => FM.tw(svg, fx.tyN(v, 1)))) + 10, x = d3.scaleBand(ts, [l, w - 8]).padding(0.22);
+    svg.append('rect').attr('x', x(per.a[0]) - x.step() * 0.11).attr('width', x(per.a[1]) - x(per.a[0]) + x.bandwidth() + x.step() * 0.22).attr('y', 4).attr('height', h - 28).attr('fill', C.grid).attr('opacity', 0.6).attr('rx', 4);
+    FM.yAxis(svg, y, w, l, 8, v => fx.tyN(v, 1), 4);
+    svg.append('g').selectAll('rect').data(D).join('rect').attr('x', d => x(d.t)).attr('width', x.bandwidth()).attr('y', d => y(Math.max(0, d.v))).attr('height', d => Math.abs(y(d.v) - y(0))).attr('rx', 2)
+      .attr('fill', d => d.t > M.TT ? C.mute : d.v < 0 ? C.red : C.ink);
+    svg.append('g').selectAll('line').data(D.filter(d => d.p != null)).join('line').attr('x1', d => x(d.t) - 2).attr('x2', d => x(d.t) + x.bandwidth() + 2).attr('y1', d => y(d.p)).attr('y2', d => y(d.p)).attr('stroke', C.red).attr('stroke-width', 2.5);
+    svg.append('line').attr('class', 'axis-line').attr('x1', l).attr('x2', w - 8).attr('y1', y(0)).attr('y2', y(0));
+    const cx = d => x(d.t) + x.bandwidth() / 2;
+    FM.monthLabels(svg, M, D, x, h, cx, inP);
+    svg.append('g').selectAll('rect').data(D).join('rect').attr('class', 'hit').attr('x', d => x(d.t) - x.step() * 0.11).attr('width', x.step()).attr('y', 0).attr('height', h)
+      .on('mousemove', (ev, d) => tip.show(ev, FM.short(M, d.t) + (d.t > M.TT ? ' · dự báo' : ''), [[d.t > M.TT ? C.mute : C.ink, 'EBITDA', fx.ty(d.v)], [null, 'Biên EBITDA', fx.pct(d.m)]].concat(d.p != null ? [[C.red, 'Kế hoạch', fx.ty(d.p)], [null, 'Chênh kế hoạch', fx.sTy(d.v - d.p)]] : [])))
+      .on('mouseleave', () => tip.hide()).on('click', (ev, d) => { if (d.t <= M.TT) dash.setParams({ ky: 'thang', thang: d.t }); });
+    const below = D.filter(d => d.p != null && d.t <= M.TT && inP(d.t) && d.v < d.p).length, nP = D.filter(d => d.p != null && d.t <= M.TT && inP(d.t)).length;
+    $('#eb-month-n').textContent = `Tỷ đồng · cột = EBITDA (nhạt là dự báo sau ${FM.short(M, M.TT)}), vạch đỏ = kế hoạch` + (nP ? ` · trong kỳ ${below}/${nP} tháng dưới kế hoạch` : '') + ' · bấm một tháng thực tế để chọn tháng đó';
+  }
+
+  // cầu EBITDA: so với cùng kỳ hoặc kế hoạch; tách lãi gộp chuẩn thành sản lượng và giá/cơ cấu/chiết khấu, cộng khớp đúng chênh lệch EBITDA
+  const BR = [
+    ['vol', 'Sản lượng', 'tong-quan'], ['mix', 'Giá bán, cơ cấu & chiết khấu', 'gia-ban-khach'], ['dme', 'DME', 'pl-kenh-vung', -1], ['sd_bien', 'S&D biến đổi', 'pl-kenh-vung', -1],
+    ['sdd_net', 'S&D cố định (không gồm khấu hao)', 'pl-kenh-vung', -1], ['cl_gia_nvl', 'Giá NVL vượt chuẩn', 'gia-von', -1], ['cl_hao_hut', 'Hao hụt vượt định mức', 'gia-von', -1],
+    ['cl_che_bien', 'Chế biến: định phí SX, đổi sản phẩm, hỏng máy', 'gia-von', -1], ['cl_san_luong', 'Định phí SX chưa hấp thụ (sản lượng)', 'gia-von', -1], ['chi_phi_chung', 'Chi phí chung', 'gia-von', -1],
+  ];
+  function bridge(M, per, S) {
+    const box = $('#eb-bridge'); box.replaceChildren();
+    const ref = S.ref; if (!ref) { $('#eb-why-n').textContent = 'Kỳ này không có cùng kỳ hay kế hoạch để so.'; return []; }
+    const cur = per.cur, a = V(M, ref, 'ebitda'), b = V(M, cur, 'ebitda');
+    const vA = V(M, ref, 'volume'), vB = V(M, cur, 'volume'), gA = V(M, ref, 'gp_chuan'), gB = V(M, cur, 'gp_chuan');
+    const volE = (vB - vA) * (FM.div(gA, vA) || 0);
+    const rows = BR.map(([k, l, go, s]) => ({ k, l, go, d: k === 'vol' ? volE : k === 'mix' ? (gB - gA) - volE : (s || 1) * ((V(M, cur, k) || 0) - (V(M, ref, k) || 0)) }));
+    const resid = (b - a) - d3.sum(rows, r => r.d);
+    if (Math.abs(resid) > 1e6) rows.push({ k: 'khac', l: 'Khác', d: resid, go: 'du-bao' });
+    $('#eb-why-n').textContent = `Tỷ đồng · ${S.isPlan ? 'kế hoạch' : 'cùng kỳ'} → thực tế ${per.lbl}; xanh làm tăng, đỏ làm giảm EBITDA; sản lượng tính theo lãi gộp chuẩn/UC của ${S.isPlan ? 'kế hoạch' : 'cùng kỳ'} · bấm một dòng để mở trang chi tiết`;
+    let run = a; const geo = [{ l: S.isPlan ? 'Kế hoạch' : 'Cùng kỳ', a: 0, b: a, t: 1, v: a }];
+    rows.forEach(r => { geo.push({ l: r.l, a: run, b: run + r.d, v: r.d, go: r.go }); run += r.d; });
+    geo.push({ l: 'Thực tế ' + per.lbl, a: 0, b, t: 1, v: b });
+    const mn = Math.min(0, d3.min(geo, g => Math.min(g.a, g.b))), mx = Math.max(0, d3.max(geo, g => Math.max(g.a, g.b))), X0 = v => (v - mn) / (mx - mn || 1) * 100;
+    geo.forEach(g => {
+      const r = FM.el('div', 'r' + (g.t ? ' t' : '')); if (g.go) { r.dataset.go = g.go; r.style.cursor = 'pointer'; }
+      const tr = FM.el('div', 'tr'), z = FM.el('i'), s = FM.el('span'); z.style.left = X0(0) + '%';
+      s.style.left = X0(Math.min(g.a, g.b)) + '%'; s.style.width = Math.max(0.4, Math.abs(X0(g.b) - X0(g.a))) + '%';
+      s.style.background = g.t ? (g.v < 0 ? C.red : C.ink) : (g.v >= 0 ? 'var(--color-ok)' : C.red); tr.append(z, s);
+      r.append(FM.el('div', '', g.l), tr, FM.el('div', 'v ' + (g.t ? '' : FM.deltaCls(g.v, true)), g.t ? fx.tyN(g.v) : (g.v > 0 ? '+' : '') + fx.tyN(g.v))); box.append(r);
+    });
+    return rows;
+  }
+
+  function year(M, per, K) {
+    const R = K.R, tb = $('#eb-nam-t'); tb.replaceChildren(); if (!R) return;
+    const yr = R.yr, yrR = R.yrR, T = M.tong, NS = M.nst;
+    $('#eb-nam-h').textContent = `Cuối năm ${yr} đứng ở đâu`;
+    const q = [0, 1, 2, 3].map(i => [yrR[0] + i * 3, Math.min(yrR[1], yrR[0] + i * 3 + 2)]).filter(r => r[0] <= yrR[1]);
+    const hd = tb.createTHead().insertRow(); ['Kỳ', 'EBITDA', 'Loại số', `Năm ${yr - 1}`, 'Kế hoạch', 'Chênh KH', 'Đạt', 'Biên'].forEach((t, i) => hd.append(FM.el('th', i === 2 ? 'l' : '', t)));
+    const body = tb.createTBody();
+    const line = (lb, r, cls) => { const a = sum(T.ebitda, r), ly = r[0] - 12 >= 0 ? sum(T.ebitda, [r[0] - 12, r[1] - 12]) : null, p = NS.ebitda ? sum(NS.ebitda, r) : null;
+      const kind = r[1] <= M.TT ? 'thực tế' : r[0] > M.TT ? 'dự báo' : `thực tế đến ${FM.short(M, M.TT)} + dự báo`;
+      const tr = body.insertRow(); if (cls) tr.className = cls;
+      [[lb], [fx.tyN(a)], [kind, 'l'], [ly != null ? fx.tyN(ly) : '—'], [p != null ? fx.tyN(p) : '—'], [p != null ? fx.sTy(a - p).replace(' tỷ', '') : '—', p != null ? FM.deltaCls(a - p, true) : ''], [p ? fx.pct(FM.div(a, p), 0) : '—'], [fx.pct(FM.div(a, sum(T.nsr, r)))]]
+        .forEach(([v, c]) => { const td = tr.insertCell(); td.textContent = v; if (c) td.className = c; }); };
+    q.forEach((r, i) => line(`Quý ${i + 1}`, r));
+    line(`Cả năm ${yr}`, yrR, 'tot');
+    const gap = R.planEBITDA - R.fcEBITDA, ops = R.levers.filter(l => /^(gom_lo|bd_lon|hao_hut)$/.test(l.id)).reduce((s, l) => s + l.eff, 0);
+    const ebitdaLev = R.lap;
+    $('#eb-nam-n').textContent = `Tỷ đồng · forecast = thực tế đến ${FM.short(M, M.TT)} + bản dự báo mới nhất của lõi. EBITDA cả năm thiếu kế hoạch ${fx.money(gap)}; hành động ở trang 05 cộng ${fx.money(ebitdaLev)} trong năm (đều tác động EBITDA), riêng phần nhà máy ${fx.money(ops)}.`;
+  }
+
+  function acc(M, per) {
+    const tb = $('#eb-kt-t'); tb.replaceChildren(); const cur = per.cur;
+    const e = V(M, cur, 'ebitda'), c = V(M, cur, 'cl_ton_kho'), k = V(M, cur, 'ebitda_ke_toan'), et = V(M, cur, 'ebt'), ek = V(M, cur, 'ebt_ke_toan');
+    const gvc = V(M, cur, 'cogs_chuan') + V(M, cur, 'cl_tong') + (V(M, cur, 'huy_chuan') || 0), gvk = V(M, cur, 'gv_ke_toan') + (V(M, cur, 'huy_ke_toan') || 0);
+    const hd = tb.createTHead().insertRow(); ['Tỷ đồng', per.lbl].forEach(t => hd.append(FM.el('th', '', t)));
+    const body = tb.createTBody();
+    [['EBITDA quản trị (giá vốn chuẩn + chênh lệch trong kỳ)', e, 'sub'], ['Giá vốn quản trị: chuẩn + vượt chuẩn + huỷ hàng', gvc], ['Giá vốn kế toán: xuất bán + huỷ theo giá thực tế bình quân', gvk],
+      ['Chênh lệch giá thành còn nằm trong tồn kho thành phẩm', c], ['EBITDA theo sổ kế toán', k, 'tot'], ['Lợi nhuận trước thuế quản trị / kế toán', null]]
+      .forEach(([l, v, cls], i) => { const tr = body.insertRow(); if (cls) tr.className = cls; const a = tr.insertCell(); a.textContent = l; const b = tr.insertCell(); b.textContent = i === 5 ? `${fx.tyN(et)} / ${fx.tyN(ek)}` : fx.tyN(v); });
+    const diff = (e + c) - k;
+    $('#eb-kt-n').textContent = `Quản trị tính giá vốn theo giá chuẩn rồi cộng phần vượt chuẩn của cả kỳ; sổ kế toán tính theo giá bình quân của hàng thực bán, nên phần chênh lệch của hàng còn tồn kho chưa vào P&L. EBITDA quản trị + chênh lệch tồn kho − EBITDA kế toán = ${fx.money(Math.abs(diff) < 1 ? 0 : diff)}.`;
+  }
+
+  function take(M, per, S, K, rows) {
+    const el = $('#eb-take'); el.classList.remove('dash-skeleton');
+    const neg = (rows || []).filter(r => r.d < 0).sort((a, b) => a.d - b.d).slice(0, 2), pos = (rows || []).filter(r => r.d > 0).sort((a, b) => b.d - a.d)[0];
+    const parts = [`EBITDA ${per.lbl} `, [fx.ty(K.e)], `, biên ${fx.pct(K.m)}`];
+    if (S.ref) { const r = S.isPlan ? K.eP : K.eL; parts.push(S.isPlan ? `, đạt ${fx.pct(FM.div(K.e, r), 0)} kế hoạch` : ` (cùng kỳ ${fx.ty(r)})`); }
+    if (pos) parts.push('. Kéo lên nhiều nhất: ', [pos.l.charAt(0).toLowerCase() + pos.l.slice(1)], ` ${fx.sMoney(pos.d)}`);
+    if (neg.length) parts.push('; kéo xuống: ', ...neg.flatMap((r, i) => [i ? ', ' : '', [r.l.charAt(0).toLowerCase() + r.l.slice(1), 'down'], ` ${fx.sMoney(r.d)}`]));
+    if (K.R && K.R.planEBITDA) parts.push(`. Cả năm ${K.R.yr} forecast `, [fx.ty(K.R.fcEBITDA)], ', đạt ', [fx.pct(FM.div(K.R.fcEBITDA, K.R.planEBITDA), 0), K.R.fcEBITDA < K.R.planEBITDA ? 'down' : 'up'], ` kế hoạch ${fx.ty(K.R.planEBITDA)}`);
+    parts.push('.');
+    FM.textParts(el, parts);
+  }
+
+  FMP.register({
+    id: 'ebitda', kv: false,
+    render({ M, per }) {
+      const S = sides(M, per), K = kpis(M, per, S);
+      let rows = []; try { rows = bridge(M, per, S); } catch (e) { setTimeout(() => { throw e; }); }
+      take(M, per, S, K, rows);
+      [() => month(M, per), () => year(M, per, K), () => acc(M, per)].forEach(fn => { try { fn(); } catch (e) { setTimeout(() => { throw e; }); } });
+    },
+    fail() { ['#eb-month'].forEach(s => FM.failBox($(s))); },
+  });
 })();
 
 </script>
@@ -1337,7 +1509,7 @@ window.FMP = (function () {
     const tot = d3.sum(L, d => d.a), top5 = d3.sum(L.slice(0, 5), d => d.a), totB = rc ? d3.sum(L, d => d.b) : null;
     const up = L.filter(d => d.b != null).map(d => ({ ...d, d: d.a - d.b })).sort((x, y) => x.d - y.d);
     $('#n-top').textContent = `Theo hoá đơn bán ra kỳ ${per.lbl}${rc ? ' so với cùng kỳ ' + FM.rangeLabel(M, rc) : ''} · ${L.length} khách${p.kenh.length ? ' trong kênh đã chọn' : ''}` + (p.vung.length ? ' · khách giao nhiều vùng nên không lọc theo vùng' : '') +
-      ` · 5 khách lớn nhất chiếm ${fx.pct(FM.div(top5, tot), 0)}` + (up.length ? ` · giảm nhiều nhất ${up[0].kh.ten} ${fx.sMoney(up[0].d)}, tăng nhiều nhất ${up[up.length - 1].kh.ten} ${fx.sMoney(up[up.length - 1].d)}` : '') + ' · lợi nhuận thật theo khách xem trang 06';
+      ` · 5 khách lớn nhất chiếm ${fx.pct(FM.div(top5, tot), 0)}` + (up.length ? ` · giảm nhiều nhất ${up[0].kh.ten} ${fx.sMoney(up[0].d)}, tăng nhiều nhất ${up[up.length - 1].kh.ten} ${fx.sMoney(up[up.length - 1].d)}` : '') + ' · lợi nhuận thật theo khách xem trang 07';
     tb.replaceChildren();
     const hd = tb.createTHead().insertRow(); ['#', 'Khách hàng', 'Kênh', 'Hoá đơn kỳ', 'Tỷ trọng', 'Lũy kế', 'Cùng kỳ', 'Tăng, giảm', '%'].forEach((t, i) => hd.append(FM.el('th', i === 1 || i === 2 ? 'l' : '', t)));
     const body = tb.createTBody(); let cum = 0;
@@ -2227,12 +2399,12 @@ window.FMP = (function () {
       const lbR = FM.rangeLabel(M, rem), past = rem[0] <= TT ? ` (T${FM.mOf(M, rem[0])}–${FM.short(M, Math.min(TT, rem[1]))} là số thực tế: tác động nếu đã làm từ ${FM.short(M, s0)})` : '';
       // vận hành dây chuyền (lõi 19.9): tách phần đổi sản phẩm và hỏng máy ra khỏi chế biến vượt chuẩn để không tính hai lần
       const OP = FM.ops && FM.ops.V(M) ? FM.ops : null, sv = t => OP ? OP.saveAt(M, t) : { gom_lo: 0, bd_lon: 0, gom_n: 0, brk_n: 0 };
-      levers.push({ id: 'hao_hut', ten: OP ? 'Đưa hao hụt và phần chế biến còn lại về định mức' : 'Đưa hao hụt và chế biến về định mức', co_so: `Phần hao hụt và chế biến vượt chuẩn ${lbR}${past}` + (OP ? ', trừ phần đổi sản phẩm và hỏng máy đã tính ở hai dòng riêng' : '') + '; mã hao hụt lớn ở trang 03',
+      levers.push({ id: 'hao_hut', ten: OP ? 'Đưa hao hụt và phần chế biến còn lại về định mức' : 'Đưa hao hụt và chế biến về định mức', co_so: `Phần hao hụt và chế biến vượt chuẩn ${lbR}${past}` + (OP ? ', trừ phần đổi sản phẩm và hỏng máy đã tính ở hai dòng riêng' : '') + '; mã hao hụt lớn ở trang 04',
         nam: each(t => (T.cl_hao_hut[t] || 0) + (T.cl_che_bien[t] || 0) - sv(t).gom_lo - sv(t).bd_lon), ai: 'Giám đốc nhà máy (COO)', han: han1, go: 'gia-von' });
       if (OP) {
         let gN = 0, bN = 0; for (let t = rem[0]; t <= rem[1]; t++) { gN += sv(t).gom_n; bN += sv(t).brk_n; }
         const od = OP.overdue(M, s0);
-        levers.push({ id: 'gom_lo', ten: 'Gom lô, giảm số lần đổi sản phẩm về mức năm trước', co_so: `Lập kế hoạch sản xuất theo tuần, chạy lô dài, gom đơn gấp; bớt ${fx.NF0.format(gN)} lần đổi sản phẩm ${lbR} so với cùng tháng năm trước × chi phí mỗi lần của từng dây chuyền (trang 03, phần vận hành)`,
+        levers.push({ id: 'gom_lo', ten: 'Gom lô, giảm số lần đổi sản phẩm về mức năm trước', co_so: `Lập kế hoạch sản xuất theo tuần, chạy lô dài, gom đơn gấp; bớt ${fx.NF0.format(gN)} lần đổi sản phẩm ${lbR} so với cùng tháng năm trước × chi phí mỗi lần của từng dây chuyền (trang 04, phần vận hành)`,
           nam: each(t => sv(t).gom_lo), ai: 'Giám đốc nhà máy + Kế hoạch sản xuất', han: han1, go: 'gia-von' });
         levers.push({ id: 'bd_lon', ten: 'Làm bù bảo dưỡng lớn đã hoãn, giữ đúng lịch 6 tháng', co_so: (od.length ? `Đang nợ bảo dưỡng lớn: ${od.map(x => x.l.code).join(', ')}; ` : '') + `giảm ${fx.pct(OP.BRK_CUT, 0)} phần chi phí hỏng máy tăng thêm so với cùng tháng năm trước ${lbR}; chi phí bảo dưỡng lớn đã có trong ngân sách định phí`,
           nam: each(t => sv(t).bd_lon), ai: 'Trưởng bảo trì (COO duyệt lịch dừng máy)', han: han1, go: 'gia-von' });
@@ -2246,7 +2418,7 @@ window.FMP = (function () {
         for (let t = rem[0]; t <= rem[1]; t++) { const pr = FM.div(p.dfr[t], p.gr[t]); if (pr != null) v += Math.max(0, (c.dfr[t] || 0) - (c.gr[t] || 0) * pr); }
         if (v > 1e6) over.push({ k: k.slide || k.ma, v }); dfrV += v; });
       over.sort((a, b) => b.v - a.v);
-      levers.push({ id: 'dfr', ten: 'Đưa chiết khấu & trade spend từng kênh về tỷ lệ kế hoạch', co_so: `DFR % GR của từng kênh về mức ngân sách; vượt nhiều nhất: ${over.slice(0, 3).map(o => `${o.k} ${fx.money(o.v)}`).join(', ') || 'không kênh nào'} (trang 02, chương DFR)`,
+      levers.push({ id: 'dfr', ten: 'Đưa chiết khấu & trade spend từng kênh về tỷ lệ kế hoạch', co_so: `DFR % GR của từng kênh về mức ngân sách; vượt nhiều nhất: ${over.slice(0, 3).map(o => `${o.k} ${fx.money(o.v)}`).join(', ') || 'không kênh nào'} (trang 03, chương DFR)`,
         nam: dfrV, ai: 'Trade marketing + Giám đốc kênh', han: han1, go: 'pl-kenh-vung' });
       levers.push({ id: 'chi_phi', ten: 'Giữ S&D cố định và chi phí chung trong ngân sách', co_so: 'Phần vượt ngân sách theo tháng của S&D cố định và chi phí chung',
         nam: each(t => Math.max(0, (T.sd_dinh[t] || 0) - (nsAt('sd_dinh', t) || 0)) + Math.max(0, (T.chi_phi_chung[t] || 0) - (nsAt('chi_phi_chung', t) || 0))), ai: 'Giám đốc tài chính (CFO)', han: han1, go: 'gia-von' });
@@ -2936,7 +3108,7 @@ window.FMP = (function () {
     const box = $('#x-kpis'); box.replaceChildren();
     const ref = X.sel, isPlan = ref && ref.src === 'plan', vs = ref ? (isPlan ? 'so KH' : 'so cùng kỳ') : '';
     const tile = (lbl, v, unit, d, cls, go) => { const t = FM.el('div', 'fm-kpi go'); t.dataset.go = go; t.append(FM.el('div', 'k-l', lbl), FM.el('div', 'k-v', v), FM.el('div', 'k-u', unit), FM.el('div', 'k-d ' + (cls || ''), d)); box.append(t); };
-    [['nsr', 'Doanh thu thuần', 'tong-quan'], ['pade_chuan', 'PADE chuẩn', 'pl-kenh-vung'], ['ebitda', 'EBITDA', 'du-bao'], ['ebt', 'Lợi nhuận trước thuế', 'du-bao']].forEach(([k, l, go]) => {
+    [['nsr', 'Doanh thu thuần', 'tong-quan'], ['pade_chuan', 'PADE chuẩn', 'pl-kenh-vung'], ['ebitda', 'EBITDA', 'ebitda'], ['ebt', 'Lợi nhuận trước thuế', 'du-bao']].forEach(([k, l, go]) => {
       const a = X.T(per.cur, k), b = ref ? X.T(ref, k) : null;
       tile(l, fx.tyN(a), 'tỷ đồng', ref ? (isPlan ? `${fx.sTy(a - b)} · đạt ${fx.pct(FM.div(a, b), 0)}` : `${fx.sTy(a - b)} ${vs}`) : '', FM.deltaCls(ref ? a - b : null, true), go);
     });
@@ -3009,7 +3181,7 @@ window.FMP = (function () {
     box.replaceChildren();
     R.levers.slice().sort((a, b) => b.eff - a.eff).slice(0, 4).forEach(l => {
       const r = FM.el('div', 'a'); r.append(FM.el('div', 't', l.ten), FM.el('div', 'v', '+' + fx.money(l.eff)), FM.el('div', 'm', `${l.ai} · hạn ${l.han}`)); box.append(r); });
-    const go = FM.el('button', 'go', 'Xem đủ hành động, rủi ro ở trang 04 ›'); go.type = 'button'; go.dataset.go = 'du-bao'; box.append(go);
+    const go = FM.el('button', 'go', 'Xem đủ hành động, rủi ro ở trang 05 ›'); go.type = 'button'; go.dataset.go = 'du-bao'; box.append(go);
   }
 
   function cash(M, per, X) {
@@ -3033,7 +3205,7 @@ window.FMP = (function () {
     }
     const I = R.inv, pc = $('#x-pa-c-box'); pc.hidden = !I;
     if (I) { const A = I.cases.find(c => c.id === 'A'), B = I.cases.find(c => c.id === 'B'), Cc = I.cases.find(c => c.id === 'C');
-      $('#x-pa-c').textContent = `${I.verdict.txt} Vốn ${fx.money(I.D.von)} (vay ${fx.pct(I.D.ty_le_vay, 0)}); NPV ${fx.money(A.npv)} nếu giữ cách chạy máy hiện nay, ${B ? fx.money(B.npv) : '—'} sau khi gom lô và bảo dưỡng đúng lịch` + (Cc ? `, ${fx.money(Cc.npv)} nếu cần thêm công suất cho tăng trưởng` : '') + '. Chi tiết ở trang 04.'; }
+      $('#x-pa-c').textContent = `${I.verdict.txt} Vốn ${fx.money(I.D.von)} (vay ${fx.pct(I.D.ty_le_vay, 0)}); NPV ${fx.money(A.npv)} nếu giữ cách chạy máy hiện nay, ${B ? fx.money(B.npv) : '—'} sau khi gom lô và bảo dưỡng đúng lịch` + (Cc ? `, ${fx.money(Cc.npv)} nếu cần thêm công suất cho tăng trưởng` : '') + '. Chi tiết ở trang 05.'; }
     if (!(R.chua <= 0 && R.gap > 0 && OPS.length)) $('#x-pa-b').textContent = `Mở chương trình ngoài ngân sách: rà lại điều khoản với chuỗi lớn tiêu dùng tại chỗ (kênh lỗ), tăng giá bán sớm hơn, cắt trade spend không mua thêm được sản lượng, hoãn chi đầu tư chưa cấp thiết để giữ tiền trên 2 tỷ. Mục tiêu lấp thêm ${fx.money(R.chua || 0)}; cần giao người chịu trách nhiệm từng hạng mục.`;
   }
 
