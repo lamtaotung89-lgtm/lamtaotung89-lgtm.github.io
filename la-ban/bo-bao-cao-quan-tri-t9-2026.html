@@ -14,6 +14,7 @@
 html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 #dash-root{padding-inline:max(16px,var(--dash-gutter,16px))}
 .dash-skeleton{min-height:1em}
+.top-home{position:fixed;left:12px;bottom:12px;z-index:50;font:12px var(--font-anthropic-sans);padding:6px 10px;border:1px solid var(--color-border-line);border-radius:6px;background:var(--color-panel);color:var(--color-fg);text-decoration:none}
 .top-theme{position:fixed;right:12px;bottom:12px;z-index:50;font:12px var(--font-anthropic-sans);padding:6px 10px;border:1px solid var(--color-border-line);border-radius:6px;background:var(--color-panel);color:var(--color-fg);cursor:pointer}
 </style></head><body><div id="dash-root">
 <style>
@@ -6212,7 +6213,7 @@ window.__boot = function (D) {
 var k='bo-bao-cao-theme';function set(t){if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');b.textContent=(t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark'?'Nền sáng':'Nền tối';}
 var t=null;try{t=localStorage.getItem(k);}catch(e){}set(t);
 b.onclick=function(){var cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var n=cur==='dark'?'light':'dark';set(n);try{localStorage.setItem(k,n);}catch(e){}};
-document.body.appendChild(b);
+document.body.appendChild(b);var h=document.createElement('a');h.className='top-home';h.href='index.html';h.textContent='← Danh sách báo cáo';document.body.appendChild(h);
 if(location.hash){var el=document.getElementById(location.hash.slice(1));if(el)setTimeout(function(){el.scrollIntoView();},300);}})();
 </script>
 </body></html>
