@@ -15,6 +15,13 @@
   };
   let MEM = [];
 
+  // ---------- shadow DOM: các bộ một file vẽ từng tab trong shadow root (mode open) → cũng phải đổi tên được ----------
+  const SR = new Set(); let started = false;
+  function reg(sr) { if (!sr || SR.has(sr)) return; SR.add(sr); if (started) mo.observe(sr, { childList: true, subtree: true, characterData: true }); }
+  const _attach = Element.prototype.attachShadow;
+  if (_attach) Element.prototype.attachShadow = function (o) { const sr = _attach.call(this, o); if (o && o.mode === 'open') setTimeout(() => { reg(sr); if (RULES.length || touched) walk(sr); }, 0); return sr; };
+  const realTarget = e => (e.composedPath && e.composedPath()[0]) || e.target;
+
   // ---------- quy tắc đổi tên: {f: chữ gốc, t: chữ mới, s: true = đổi cả khi nằm trong câu} ----------
   let RULES = LS.get(), EXACT = new Map(), SUBS = [];
   function compile() {
@@ -57,9 +64,12 @@
   function walk(root) {
     if (!root) return;
     if (root.nodeType === 3) { proc(root); return; }
-    if (root.nodeType !== 1 || ours(root)) return;
+    if ((root.nodeType !== 1 && root.nodeType !== 11) || (root.nodeType === 1 && ours(root))) return;
     const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let n; while ((n = tw.nextNode())) proc(n);
+    const hosts = root.nodeType === 1 && root.shadowRoot ? [root] : [];
+    root.querySelectorAll('*').forEach(e => { if (e.shadowRoot) hosts.push(e); });
+    hosts.forEach(h => { if (!ours(h)) { reg(h.shadowRoot); walk(h.shadowRoot); } });
   }
   let TITLE0 = null;
   function applyAll() {
@@ -107,12 +117,12 @@
     const x = e.clientX, y = e.clientY;
     let n = null;
     try {
-      if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y); n = p && p.offsetNode; }
+      if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y, { shadowRoots: [...SR] }); n = p && p.offsetNode; }
       else if (document.caretRangeFromPoint) { const r = document.caretRangeFromPoint(x, y); n = r && r.startContainer; }
     } catch (err) { n = null; }
     if (n && n.nodeType === 3 && norm(n.data) && !ours(n) && inRects(textRects(n), x, y)) return n;
     // chữ trong biểu đồ SVG và ô có nhiều đoạn chữ: tìm đoạn nằm dưới con trỏ
-    const el = e.target && e.target.nodeType === 1 ? e.target : null; if (!el || ours(el)) return null;
+    const tg = realTarget(e), el = tg && tg.nodeType === 1 ? tg : null; if (!el || ours(el)) return null;
     let first = null;
     const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let t;
     while ((t = tw.nextNode())) { if (!norm(t.data) || ours(t)) continue; if (inRects(textRects(t), x, y)) return t; first = first || t; }
@@ -121,19 +131,19 @@
   const isNum = s => !/[A-Za-zÀ-ỹĐđ]{2,}/.test(s); // chỉ số, dấu, đơn vị ngắn → không cho đổi
   function rectOf(t) { const rs = textRects(t); if (!rs.length) return null; const l = Math.min(...rs.map(r => r.left)), tp = Math.min(...rs.map(r => r.top)); return { left: l, top: tp, width: Math.max(...rs.map(r => r.right)) - l, height: Math.max(...rs.map(r => r.bottom)) - tp }; }
   function onMove(e) {
-    if (!picking || ours(e.target)) { if (picking) hl(null); return; }
+    if (!picking || ours(realTarget(e))) { if (picking) hl(null); return; }
     const t = textAt(e); hlEl = t && !isNum(norm(original(t))) ? t : null; hl(hlEl ? rectOf(hlEl) : null);
   }
   const BLOCK = ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'dblclick', 'touchstart', 'touchend', 'contextmenu', 'auxclick'];
   function blocker(e) {
-    if (!picking || ours(e.target)) return;
+    if (!picking || ours(realTarget(e))) return;
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
   }
   function onClick(e) {
-    const a = e.target && e.target.closest && e.target.closest('a[target=_blank]');
+    const tg = realTarget(e), a = tg && tg.closest && tg.closest('a[target=_blank]');
     // liên kết giữa các trang trong bộ: mở ngay trong tab này (giữ thanh chọn báo cáo)
     if (!picking && a && a.host === location.host && /\.html?(\?|#|$)/.test(a.pathname + a.search + a.hash)) { a.removeAttribute('target'); return; }
-    if (!picking || ours(e.target)) return;
+    if (!picking || ours(tg)) return;
     e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
     const t = textAt(e); if (!t) return;
     const orig = norm(original(t)); if (!orig || isNum(orig)) { toast('Chữ này là số liệu, không đổi tên được'); return; }
@@ -168,13 +178,14 @@
 
   // ---------- bảng tên đã đổi ----------
   function pageTerms() {
-    const seen = new Map(), tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+    const seen = new Map(); walk(document.body); // bảo đảm đã thấy mọi shadow root
+    for (const root of [document.body, ...SR]) { if (root.host && !root.host.isConnected) continue; const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
     while ((n = tw.nextNode())) {
       if (ours(n)) continue; const o = norm(original(n));
       if (!o || o.length > 60 || isNum(o) || /\d/.test(o) || seen.has(o)) continue; // bỏ câu có số (đổi theo kỳ)
       const el = n.parentNode; if (!el || !el.getClientRects || !el.getClientRects().length) continue; // phần đang ẩn
       seen.set(o, 1);
-    }
+    }}
     return [...seen.keys()];
   }
   function renderPanel() {
@@ -278,8 +289,9 @@
   }
 
   function start() {
-    fromUrl(); ui(); applyAll();
+    fromUrl(); ui(); started = true; applyAll();
     mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+    SR.forEach(sr => mo.observe(sr, { childList: true, subtree: true, characterData: true }));
     // trang có thể vẽ xong sau sự kiện load (phông chữ, dữ liệu nhúng lớn)
     setTimeout(applyAll, 400);
   }
