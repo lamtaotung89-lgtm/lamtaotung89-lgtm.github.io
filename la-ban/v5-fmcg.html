@@ -1117,10 +1117,15 @@ function tEbitda(){
     stats:[ [money(R.nsr.cur), 'doanh thu thuần'], [pct(div(R.dfr.cur, R.gr.cur)), 'DFR % doanh thu gộp'], [money(R.gp_chuan.cur), 'lãi gộp chuẩn'] ], btns:[['Xem bảng P&L','#ebPl'],['Xem kênh × vùng','kenh-vung']],
     ring: ok(R[main].cmp) && R[main].cmp > 0 ? { f:R[main].cur / R[main].cmp, n:nf0.format(R[main].cur / R[main].cmp*100) + '%', t:[mn + ' đạt', per.cmp.lbl] } : null });
   // cầu lợi nhuận
-  if (per.cmp){ const steps = rows.filter(r => !r.k && ok(impact(r))).map(r => ({ n:r.l.replace(' (BOM)','').replace('Chiết khấu & trade spend (DFR)','Chiết khấu & trade spend'), v:impact(r), k:r.id }));
+  if (per.cmp){ const uc = Sc(cs, 'volume', c.r), ucB = FM.S(M, per.cmp, 'volume', cs), dGR = R.gr.cur - R.gr.cmp;
+    // sản lượng đo ở lãi gộp chuẩn của kỳ so sánh; giá, chiết khấu, giá vốn đo trên mỗi UC (phần còn lại sau khi bỏ hiệu ứng sản lượng); khấu hao gộp phần cộng lại trong S&D
+    const g = ok(uc) && ok(ucB) && ucB > 0 ? uc / ucB - 1 : 0, Dv = id => R[id].cur - R[id].cmp - (ok(R[id].cmp) ? R[id].cmp * g : 0);
+    const head = g ? [{ n:'Sản lượng (UC)', v:R.gp_chuan.cmp * g, k:'gr', note:'Lãi gộp chuẩn của kỳ so sánh × ' + pct(g, true) + ' UC' }, { n:'Giá bán & cơ cấu', v:Dv('gr'), k:'gr' }, { n:'Chiết khấu & trade spend / UC', v:-Dv('dfr'), k:'dfr' }, { n:'Giá vốn chuẩn / UC', v:-Dv('cogs_chuan'), k:'cogs_chuan' }]
+      : [{ n:'Doanh thu gộp', v:dGR, k:'gr' }, { n:'Chiết khấu & trade spend', v:-(R.dfr.cur - R.dfr.cmp), k:'dfr' }, { n:'Giá vốn chuẩn', v:-(R.cogs_chuan.cur - R.cogs_chuan.cmp), k:'cogs_chuan' }];
+    const steps = head.concat(rows.filter(r => !r.k && !['dfr','cogs_chuan','kh_trong_sd'].includes(r.id) && ok(impact(r))).map(r => ({ n:r.id === 'kh_tong' && R.kh_trong_sd ? 'Khấu hao ngoài S&D' : r.l, v:impact(r) + (r.id === 'kh_tong' && R.kh_trong_sd && ok(impact(R.kh_trong_sd)) ? impact(R.kh_trong_sd) : 0), k:r.id })));
     const resid = (R[main].cur - R[main].cmp) - sum(steps.map(s => s.v)); if (Math.abs(resid) > 1e6) steps.push({ n:'Khác', v:resid });
     document.getElementById('ebBrT').textContent = 'Cầu ' + mn + ': ' + money(R[main].cmp) + ' (' + per.cmp.lbl + ') → ' + money(R[main].cur);
-    document.getElementById('ebBrS').textContent = 'Xanh = làm tăng lợi nhuận, đỏ = làm giảm. Cộng các cột giữa đúng bằng chênh lệch ' + money(R[main].cur - R[main].cmp, true) + '.';
+    document.getElementById('ebBrS').textContent = (g ? 'Sản lượng ' + pct(g, true) + ' UC tính bằng lãi gộp chuẩn của phần bán thêm; giá bán, chiết khấu, giá vốn đo trên mỗi UC (gồm cả cơ cấu kênh, sản phẩm). ' : '') + 'Xanh = làm tăng lợi nhuận, đỏ = làm giảm. Cộng các cột giữa đúng bằng chênh lệch ' + money(R[main].cur - R[main].cmp, true) + '.';
     V.waterfall('cEbBridge', [{ n: per.cmp.src === 'plan' ? 'Kế hoạch' : 'Cùng kỳ', v:R[main].cmp, total:1 }].concat(steps.filter(s => Math.abs(s.v) > 5e5)).concat([{ n:per.lbl, v:R[main].cur, total:1 }]), { lw:66, click: it => { if (it.k){ PLK = it.k; plDraw(c); } } }); }
   // bảng P&L
   const yr = FM.year(M, per.yr), side = (src) => src === 'plan' ? SIDE_PLAN(yr) : SIDE_ACT(yr), yv = (it, src) => it.co ? (all ? FM.T(M, side(src), it.id) : null) : FM.S(M, side(src), it.id, cs);
