@@ -3,7 +3,7 @@
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <link rel="stylesheet" href="lb-shell.css"></head><body><header id="lbbar"><div class="lb-in">
 <a class="lb-home" href="index.html" title="Danh sách báo cáo"><svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 5 L17.5 14 L14 23 L10.5 14 Z" fill="#d62828"/><circle cx="14" cy="14" r="2" fill="#0b1d3a"/></svg>La bàn</a>
-<div class="lb-pick"><label for="lbsel">Báo cáo</label><select id="lbsel" aria-label="Chọn báo cáo"><option value="dieu-hanh-san-xuat.html">1. Báo cáo quản trị - sản xuất</option><option value="bo-bao-cao-quan-tri-t9-2026.html">1b. Sản xuất - bản 7 tab cũ (T9/2026)</option><option value="bo-bao-cao-fmcg-t9-2026.html">2. Báo cáo quản trị - FMCG</option><option value="bo-bao-cao-phan-phoi-t9-2026.html">3. Báo cáo quản trị - Nhà phân phối</option><option value="executive-summary.html" selected>Executive summary</option></select></div>
+<div class="lb-pick"><label for="lbsel">Báo cáo</label><select id="lbsel" aria-label="Chọn báo cáo"><option value="v5-san-xuat.html">1. Báo cáo quản trị - sản xuất</option><option value="v5-fmcg.html">2. Báo cáo quản trị - FMCG</option><option value="v5-nha-phan-phoi.html">3. Báo cáo quản trị - Nhà phân phối</option><option value="executive-summary.html" selected>Executive summary</option></select></div>
 <div class="lb-act"><button type="button" class="lb-btn" id="lbedit" aria-pressed="false" title="Đổi tên tiêu đề, cột, nhãn theo cách gọi của bạn"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14h3l8-8-3-3-8 8z M9.5 3.5l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Đổi tên đầu mục <span class="lb-n" id="lbcount"></span></button></div>
 </div></header>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -100,7 +100,7 @@ a.more:hover,a.more:focus-visible{text-decoration:underline;outline:none}
     <h2 id="s-what">Bán nhiều hơn hẳn, lời gần như đứng yên</h2>
     <p>Sản lượng 9 tháng 641 tấn, tăng 108 tấn so cùng kỳ (+20%) và vượt kế hoạch 60 tấn (+10%). Doanh thu 48,05 tỷ, tăng 8,44 tỷ so cùng kỳ, vượt kế hoạch 1,93 tỷ.</p>
     <p>EBITDA quản trị 5,27 tỷ, biên 11,0%, thấp hơn cùng kỳ 56 tr và thiếu kế hoạch 738 tr; 6/9 tháng dưới kế hoạch. Biên LN gộp giảm từ 34,1% xuống 32,8%, biên LN đóng góp từ 44,5% xuống 41,6%. Sau khấu hao máy mới và lãi vay, lợi nhuận trước thuế 9 tháng chỉ còn 1,29 tỷ.</p>
-    <a class="more" href="bo-bao-cao-quan-tri-t9-2026.html#p-ebitda">Xem cầu EBITDA →</a>
+    <a class="more" href="v5-san-xuat.html#ebitda">Xem cầu EBITDA →</a>
   </section>
 
   <section aria-labelledby="s-why">
@@ -111,7 +111,7 @@ a.more:hover,a.more:focus-visible{text-decoration:underline;outline:none}
       <div class="drv"><span class="n">−1,68 tỷ</span><h3>Nhân sự khi chạy công suất cao</h3><p>Tuyển thêm và tăng ca 8.785 giờ; Phôi chạy 91% công suất. Định phí cả kỳ tăng 2,42 tỷ, trong đó bảo dưỡng & sửa chữa −459 tr.</p></div>
       <div class="drv"><span class="n">2,8%</span><h3>Hao hụt sản xuất tăng</h3><p>+0,5 điểm so cùng kỳ, thành tiền 603 tr. Biến phí sản xuất trên mỗi kg thêm −115 tr.</p></div>
     </div>
-    <a class="more" href="bo-bao-cao-quan-tri-t9-2026.html#p-bien-dinh-phi">Xem định phí và hao hụt →</a>
+    <a class="more" href="v5-san-xuat.html#bien-dinh-phi">Xem định phí và hao hụt →</a>
   </section>
 
   <section aria-labelledby="s-fc">
@@ -132,7 +132,7 @@ a.more:hover,a.more:focus-visible{text-decoration:underline;outline:none}
     <h2 id="s-cash">Trả được gốc lãi, nhưng dư nợ tăng theo tuần và sắp chạm ngưỡng</h2>
     <p>Tiền từ hoạt động 9 tháng chỉ 1,43 tỷ, bằng 27% EBITDA (cùng kỳ 107%). Lợi nhuận chưa thành tiền vì ba chỗ giữ tiền: máy thổi chai và máy ép nắp khoảng 7,4 tỷ (T3–T9), tồn NVL mua trước vì sợ tăng giá từ khoảng 2,1 lên 6,6 tỷ, và khách trả chậm. Nhà cung cấp vẫn được trả đúng hạn (DPO 29 ngày), còn khách hàng DSO 63 ngày (cùng kỳ 53): phải thu 13,16 tỷ, quá hạn 2,54 tỷ (+2,00 tỷ), nhiều nhất Coca-Cola 1,03 tỷ.</p>
     <p>Tiền cuối T9 còn 1,64 tỷ trong khi dư nợ vay ngắn hạn 9,20 tỷ, tiền thuần −7,56 tỷ; 38 tuần trong năm phải dựa vào vay. Hạn mức vay còn rộng (15 tỷ), nhưng ngưỡng rủi ro thanh khoản ban điều hành đặt là 10 tỷ: dự báo dư nợ vượt ngưỡng từ tuần 19/10, cao nhất 10,60 tỷ. Tuần 15/10 tiền xuống 384 tr, dưới mức an toàn 500 tr, phải vay thêm 200 tr.</p>
-    <a class="more" href="bo-bao-cao-quan-tri-t9-2026.html#p-tien">Xem dự báo tiền 13 tuần →</a>
+    <a class="more" href="v5-san-xuat.html#tien">Xem dự báo tiền 13 tuần →</a>
   </section>
 
   <section aria-labelledby="s-risk">
@@ -169,7 +169,7 @@ a.more:hover,a.more:focus-visible{text-decoration:underline;outline:none}
       <div class="legend"><span><i class="s1"></i>Bán thêm 148 tr</span><span><i class="s2"></i>Định phí về ngân sách 36 tr</span><span><i class="s3"></i>Hao hụt 17 tr</span></div>
     </div>
     <p><b>Tiền:</b> CFO thu nợ quá hạn (khoảng 1,27 tỷ) và Sales đưa Coca-Cola, Pepsi, Masan Consumer về thời hạn trả như cùng kỳ (khoảng 1,89 tỷ). Hai việc giải phóng khoảng 3,15 tỷ, kéo dư nợ về dưới ngưỡng. Sourcing giãn lịch mua NVL vượt định mức tồn.</p>
-    <a class="more" href="bo-bao-cao-quan-tri-t9-2026.html#p-du-bao">Giao việc, hạn và mức thực hiện →</a>
+    <a class="more" href="v5-san-xuat.html#du-bao">Giao việc, hạn và mức thực hiện →</a>
   </section>
 
   <div class="decision" role="region" aria-labelledby="s-dec">
