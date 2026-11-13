@@ -322,7 +322,7 @@ tbody tr.on{background:var(--hl);box-shadow:inset 3px 0 0 var(--up)}
 <div class="wrap">
 <header class="bar"><div class="bar-in">
   <div class="row">
-    <div class="ttl"><a href="index.html" style="color:inherit;text-decoration:none" title="Danh sách báo cáo">← La bàn</a> · Báo cáo quản trị sản xuất <small>bản v5 · dữ liệu mẫu v3, thực tế đến T9/26</small></div>
+    <div class="ttl"><a href="https://lamtaotung89-lgtm.github.io/la-ban/" style="color:inherit;text-decoration:none" title="Danh sách báo cáo">← La bàn</a> · Báo cáo quản trị sản xuất <small>bản v5 · dữ liệu mẫu v3, thực tế đến T9/26</small></div>
     <span class="sel">Giao diện</span>
     <div class="seg" id="variant" role="group" aria-label="Giao diện"><button data-v="D" aria-pressed="true">D · Cam nâu</button><button data-v="C" aria-pressed="false">C · Tươi</button><button data-v="A" aria-pressed="false">A · Sáng gọn</button><button data-v="B" aria-pressed="false">B · Trình chiếu</button></div>
   </div>
@@ -2167,8 +2167,8 @@ function tabDuBao(){
     p:on.length + ' hành động đề xuất đang chọn dự kiến đóng góp ' + money(q) + ' trong năm và ' + money(y12) + ' trong 12 tháng tới. Bỏ chọn một hành động để xem mức thiếu hụt thay đổi.',
     stats:[ [money(y.fy.lntt), 'LNTT ' + y.y + ' ' + fyW + ' (KH ' + money(y.pl.lntt) + ')'], [money(y.fy.rev), 'doanh thu cả năm'], [money(act.debtAfter), (act.yeKnown ? 'dư nợ cuối năm' : 'dư nợ cuối ' + m.E.mLabel(P.e)) + ' nếu thu hồi đủ công nợ'] ], btns:[['Xem hành động','#dbLev'],['Xem tiền & nợ','tien']],
     ring:{ f:y.fy.eb/y.pl.eb, mark: Math.min(1,(y.fy.eb + q)/y.pl.eb), n:nf0.format(y.fy.eb/y.pl.eb*100) + '%', t:[fyW + ' / KH', 'chấm nâu: sau hành động'] } });
-  waterfall('cDbW', [ { n:(y.live ? 'Dự báo ' : 'Ước tính ') + y.y, v:y.fy.eb, total:1 } ].concat(on.filter(x => x.q).map(x => ({ n:LVN[x.k] || x.n.slice(0, 30), v:x.q, note:x.n + ' · ' + x.who + ' · ' + x.note }))).concat([ { n:'Chưa có giải pháp', v:Math.max(0,gap), bad:1, note:'kế hoạch trừ dự báo và hành động' }, { n:'Kế hoạch ' + y.y, v:y.pl.eb, total:1 } ]), { lw:80 });
-  document.getElementById('dbWT').textContent = 'Từ ' + fyW + ' đến kế hoạch ' + y.y + ': ' + money(y.fy.eb) + ' + hành động ' + money(q) + ' + chưa có giải pháp ' + money(Math.max(0,gap)) + ' = ' + money(y.pl.eb);
+  waterfall('cDbW', [ { n:(y.live ? 'Dự báo ' : 'Ước tính ') + y.y, v:y.fy.eb, total:1 } ].concat(on.filter(x => x.q).map(x => ({ n:LVN[x.k] || x.n.slice(0, 30), v:x.q, note:x.n + ' · ' + x.who + ' · ' + x.note }))).concat(gap > 1e6 ? [{ n:'Chưa có giải pháp', v:gap, bad:1, note:'kế hoạch trừ ' + fyW + ' và hành động' }] : gap < -1e6 ? [{ n:'Sau hành động', v:y.fy.eb + q, total:1, note:fyW + ' cộng hành động đề xuất' }] : []).concat([{ n:'Kế hoạch ' + y.y, v:y.pl.eb, total:1 }]), { lw:80 });
+  document.getElementById('dbWT').textContent = 'Từ ' + fyW + ' đến kế hoạch ' + y.y + ': ' + money(y.fy.eb) + ' + hành động ' + money(q) + (gap >= 0 ? ' + chưa có giải pháp ' + money(gap) + ' = ' + money(y.pl.eb) : ' = ' + money(y.fy.eb + q) + ', vượt kế hoạch ' + money(y.pl.eb) + ' là ' + money(-gap));
   // EBITDA theo tháng của năm: thực tế, dự báo, kế hoạch, lũy kế
   const Y = y.Y; let ca = 0, cp = 0; const cum = Y.map(t => (ca += m.M.eb[t])), cpl = Y.map(t => (cp += (m.PLN && m.PLN.has[t] ? m.PLN.eb[t] : 0)));
   const c = chart('cDbM'); c.setOption({ ...anim(), textStyle:txt(), grid:{ left:8, right:8, top:34, bottom:8, containLabel:true }, legend:{ top:0, left:0, itemWidth:12, itemHeight:8, textStyle:{ color:T.ink } },
