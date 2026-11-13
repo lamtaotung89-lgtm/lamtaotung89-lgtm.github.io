@@ -1351,21 +1351,21 @@ var LBDieuHanh = (function () {
       const out = [];
       // 1 phụ thu NVL cho phần giá NVL tăng sau kỳ chốt, từ tháng sau tháng đang chạy
       const lagR2 = Ssum(LAG, R2);
-      out.push({ k: 'phu_thu', n: 'Áp dụng phụ thu NVL cho phần giá nhựa tăng sau kỳ chốt giá', who: 'Sales, Sourcing', q: PA.dat * lagR2, y: 0, base: lagR2, note: `thu được ${Math.round(PA.dat * 100)}% của ${R2.length} tháng còn lại` });
+      out.push({ k: 'phu_thu', ngan: 'Tăng giá bán theo giá nhựa (phụ thu phần tăng sau kỳ chốt giá)', n: 'Áp dụng phụ thu NVL cho phần giá nhựa tăng sau kỳ chốt giá', who: 'Sales, Sourcing', q: PA.dat * lagR2, y: 0, base: lagR2, note: `thu được ${Math.round(PA.dat * 100)}% của ${R2.length} tháng còn lại` });
       // 2 điều chỉnh giá hằng quý theo chỉ số NVL thay vì chốt theo kỳ hiện hành
       const qr = Y.filter(t => (t - y0) % 3 === 0), lagCur = sum(Y.map(t => lagWith(t, RESETS))), lagQ = sum(Y.map(t => lagWith(t, qr)));
-      out.push({ k: 'gia_quy', n: 'Điều chỉnh giá hằng quý theo chỉ số nhựa', who: 'CEO, Sales', q: 0, y: Math.max(0, lagCur - lagQ), base: lagCur, alt: lagQ, note: `phần chưa vào giá cả năm ${E.yearOf(e)} giảm từ chốt hiện hành xuống chốt theo quý` });
+      out.push({ k: 'gia_quy', ngan: 'Điều chỉnh giá bán hằng quý theo chỉ số nhựa', n: 'Điều chỉnh giá hằng quý theo chỉ số nhựa', who: 'CEO, Sales', q: 0, y: Math.max(0, lagCur - lagQ), base: lagCur, alt: lagQ, note: `phần chưa vào giá cả năm ${E.yearOf(e)} giảm từ chốt hiện hành xuống chốt theo quý` });
       // 3 rebate: tỷ lệ kỳ này về mức cùng kỳ cho phần cam kết
       const pr = priceRebate(P), dr = pr.rl != null && pr.r != null ? Math.max(0, pr.r - pr.rl) : 0;
-      out.push({ k: 'rebate', n: `Giảm rebate khách hàng key xuống ${pr.rl != null ? (pr.rl * 100).toFixed(1).replace('.', ',') : '—'}% cho sản lượng cam kết, chỉ áp mức cao cho phần vượt cam kết`, who: 'Sales', q: PA.dat * dr * Ssum(REV_K, R2), y: dr * Ssum(REV_K, Y), base: dr, note: `chênh tỷ lệ rebate × doanh thu khách key` });
+      out.push({ k: 'rebate', ngan: `Giảm rebate khách hàng key về ${pr.rl != null ? (pr.rl * 100).toFixed(1).replace('.', ',') : '—'}% cho sản lượng cam kết`, n: `Giảm rebate khách hàng key xuống ${pr.rl != null ? (pr.rl * 100).toFixed(1).replace('.', ',') : '—'}% cho sản lượng cam kết, chỉ áp mức cao cho phần vượt cam kết`, who: 'Sales', q: PA.dat * dr * Ssum(REV_K, R2), y: dr * Ssum(REV_K, Y), base: dr, note: `chênh tỷ lệ rebate × doanh thu khách key` });
       // 4 bán thêm vào công suất còn trống của nhóm chạy dưới mục tiêu
       const mx = mixShift(P, 'ly') || mixShift(P, 'plan'), cmkg = g => { const x = (mx ? mx.groups : []).find(o => o.g === g); return x ? x.cmkg : 0; };
       const kgsx = PLc.kg_sx || [], room = GROUPS.map(g => { const u = (CS[g] || [])[e], q = ((kgsx[e] || {})[g]) || 0; return { g, u, q, room: u > 0 && u < PA.cong_suat_muc_tieu ? q * (PA.cong_suat_muc_tieu / u - 1) : 0, cmkg: cmkg(g) }; }).filter(r => r.room > 0);
-      out.push({ k: 'cong_suat', n: `Tăng bán ${room.map(r => r.g).join(', ')} để khai thác công suất còn trống đến ${Math.round(PA.cong_suat_muc_tieu * 100)}%`, who: 'Sales', q: 0, y: PA.dat * 12 * sum(room.map(r => r.room * r.cmkg)), base: room, note: `đạt ${Math.round(PA.dat * 100)}% phần trống, theo LN đóng góp/kg của kỳ` });
+      out.push({ k: 'cong_suat', ngan: `Tăng sản lượng ${room.map(r => r.g).join(', ')} thêm ${Math.round(PA.dat * 12 * sum(room.map(r => r.room)) / 1000).toLocaleString('vi-VN')} tấn/năm (công suất lên ${Math.round(PA.cong_suat_muc_tieu * 100)}%)`, n: `Tăng bán ${room.map(r => r.g).join(', ')} để khai thác công suất còn trống đến ${Math.round(PA.cong_suat_muc_tieu * 100)}%`, who: 'Sales', q: 0, y: PA.dat * 12 * sum(room.map(r => r.room * r.cmkg)), base: room, note: `đạt ${Math.round(PA.dat * 100)}% phần trống, theo LN đóng góp/kg của kỳ` });
       // 5 hao hụt về mục tiêu; quý còn lại: thêm định phí vượt ngân sách của các nhóm theo dõi
       const hh = PLc.hao_hut_sx || z(), nv = PLc.nvl_dinh_muc || z(), rate = div(Ssum(hh, P.cur), Ssum(nv, P.cur)) || 0, ex = Math.max(0, rate - PA.hao_hut_muc_tieu);
       const over = PLN ? (CF.dinh_phi_ve_ngan_sach || []).reduce((s, c) => s + R2.reduce((a, t) => a + Math.max(0, (M['f:' + c] || [])[t] - ((PLN['f:' + c] || [])[t] || 0)), 0), 0) : 0;
-      out.push({ k: 'hao_hut', n: `Giảm hao hụt xuống ${(PA.hao_hut_muc_tieu * 100).toFixed(1).replace('.', ',')}%${over ? '; kiểm soát ' + (CF.dinh_phi_ve_ngan_sach || []).map(c => c.toLowerCase()).join(', ') + ' trong ngân sách' : ''}`, who: 'COO, HRD, CFO', q: PA.dat * (ex * Ssum(nv, R2) + over), y: ex * Ssum(nv, Y), base: rate, note: '12 tháng chỉ tính hao hụt' });
+      out.push({ k: 'hao_hut', ngan: `Giảm hao hụt sản xuất xuống ${(PA.hao_hut_muc_tieu * 100).toFixed(1).replace('.', ',')}%${over ? ', định phí về ngân sách' : ''}`, n: `Giảm hao hụt xuống ${(PA.hao_hut_muc_tieu * 100).toFixed(1).replace('.', ',')}%${over ? '; kiểm soát ' + (CF.dinh_phi_ve_ngan_sach || []).map(c => c.toLowerCase()).join(', ') + ' trong ngân sách' : ''}`, who: 'COO, HRD, CFO', q: PA.dat * (ex * Ssum(nv, R2) + over), y: ex * Ssum(nv, Y), base: rate, note: '12 tháng chỉ tính hao hụt' });
       const tq = sum(out.map(o => o.q)), ty = sum(out.map(o => o.y));
       return { items: out, q: tq, y: ty, R2, Y };
     }
@@ -1669,33 +1669,28 @@ window.V5Lev = (function(){
   let css = false;
   function style(){ if (css) return; css = true; const s = document.createElement('style'); s.textContent =
     '.levx{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}' +
-    '.levx-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}' +
+    '.levx-h{display:flex;justify-content:space-between;gap:4px 12px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px}' +
     '.levx-h b{font-size:14px}.levx-h small{color:var(--muted);font-size:12px}' +
-    '.levx-g{display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 2px;padding-bottom:4px;border-bottom:1px solid var(--line-2)}' +
-    '.levx-g .num{color:var(--ink);text-transform:none;letter-spacing:0}' +
-    '.levx-r{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 14px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}' +
-    '.levx-r .nm{display:grid;min-width:0}.levx-r .nm span{overflow-wrap:anywhere}.levx-r small{color:var(--muted);font-size:11.5px}' +
-    '.levx-c{justify-self:start;font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;background:var(--hl);color:var(--ink);margin-bottom:2px}' +
-    '.levx-r .num{font-family:var(--f-num);font-weight:700;text-align:right;white-space:nowrap}.levx-r .y{color:var(--muted);font-weight:500}' +
-    '.levx-r.z .num:first-of-type{color:var(--faint)}' +
-    '.levx-t{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;padding:8px 0 0;font-weight:700;font-size:13px}.levx-t .num{font-family:var(--f-num);text-align:right}' +
+    '.levx-s{font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 2px}' +
+    '.levx ul{list-style:none;margin:0;padding:0}' +
+    '.levx li{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.45}' +
+    '.levx li .nm{min-width:0;overflow-wrap:anywhere}.levx li .nm::before{content:"•";margin-right:8px;color:var(--muted)}' +
+    '.levx li small{color:var(--muted);font-size:12px;margin-left:6px;white-space:nowrap}' +
+    '.levx li .num{font-family:var(--f-num,inherit);font-weight:700;white-space:nowrap;text-align:right}' +
+    '.levx li .num i{display:block;font-style:normal;font-weight:500;font-size:11.5px;color:var(--muted)}' +
     '.levx-n{color:var(--muted);font-size:12px;margin:8px 0 0}' +
-    '.levx-hd{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;font-size:11px;color:var(--faint);padding-top:4px}.levx-hd span{text-align:right}' +
-    '.levbtn{border:1px solid var(--line-2);background:var(--card);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink)}';
+    '.levbtn{border:1px solid var(--line-2,var(--line));background:var(--card,transparent);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink)}';
     document.head.appendChild(s); }
-  // el: khung chứa; o: { items, total, year, money, yLabel, note }
-  function render(el, o){ style(); if (!el) return; const m = o.money, L = sort(o.items), hasY = L.some(x => x.y != null);
-    const yl = o.yLabel || '12 tháng tới';
-    const hd = '<div class="levx-hd"><span></span><span>Trong năm ' + esc(o.year) + '</span><span>' + (hasY ? esc(yl) : '') + '</span></div>';
-    let h = '<div class="levx-h"><b>Hành động đề xuất: ' + m(o.total, true) + ' trong năm ' + esc(o.year) + '</b><small>ước tính, chưa phải số cam kết</small></div>' + hd;
-    GROUPS.forEach(g => { const rows = L.filter(x => x.c.g === g); if (!rows.length) return;
-      const st = rows.reduce((s, x) => s + (x.v || 0), 0), sy = rows.reduce((s, x) => s + (x.y || 0), 0);
-      h += '<div class="levx-g"><span>' + g + '</span><span class="num">' + m(st, true) + '</span></div>';
-      h += rows.map(x => '<div class="levx-r' + (x.v ? '' : ' z') + '"><div class="nm"><span class="levx-c">' + esc(x.c.n) + '</span><span>' + esc(x.name) + '</span>' + (x.who ? '<small>' + esc(x.who) + '</small>' : '') + '</div>' +
-        '<span class="num">' + (x.v ? m(x.v, true) : '–') + '</span><span class="num y">' + (hasY ? (x.y ? m(x.y, true) : '–') : '') + '</span></div>').join(''); });
+  // el: khung chứa; o: { items:[{ id, name, who, v (trong năm), y (12 tháng tới) }], total, year, money, yLabel, note }
+  // Mỗi hành động một dòng: tên ngắn có số lượng hóa → số tiền trong năm; hành động chỉ có tác dụng từ năm sau xếp riêng ở cuối.
+  function render(el, o){ style(); if (!el) return; el.classList.add('levx'); const m = o.money, yl = o.yLabel || '12 tháng tới';
+    const L = o.items.filter(x => (x.v || 0) > 0 || (x.y || 0) > 0), now = L.filter(x => (x.v || 0) > 0).sort((a, b) => b.v - a.v), later = L.filter(x => !((x.v || 0) > 0)).sort((a, b) => (b.y || 0) - (a.y || 0));
     const ty = L.reduce((s, x) => s + (x.y || 0), 0);
-    h += '<div class="levx-t"><span>Cộng</span><span class="num">' + m(o.total, true) + '</span><span class="num">' + (hasY ? m(ty, true) : '') + '</span></div>';
-    h += '<p class="levx-n">' + esc(o.note || 'Số trong năm là phần các hành động mang về ở những tháng còn lại của năm; "–" là hành động chỉ có tác dụng từ năm sau. Chọn hoặc bỏ hành động ở tab Dự báo & hành động.') + '</p>';
+    const li = (x, main) => '<li><span class="nm">' + esc(x.name) + (x.who ? '<small>' + esc(x.who) + '</small>' : '') + '</span><span class="num">' + (main ? m(x.v, true) + (x.y ? '<i>' + esc(yl) + ' ' + m(x.y, true) + '</i>' : '') : m(x.y, true) + '<i>' + esc(yl) + '</i>') + '</span></li>';
+    let h = '<div class="levx-h"><b>Hành động đề xuất: ' + m(o.total, true) + ' trong năm ' + esc(o.year) + (ty ? ' · ' + m(ty, true) + ' trong ' + esc(yl) : '') + '</b><small>ước tính, chưa phải số cam kết</small></div>';
+    if (now.length) h += '<ul>' + now.map(x => li(x, true)).join('') + '</ul>';
+    if (later.length) h += '<div class="levx-s">Phát huy tác dụng từ năm sau</div><ul>' + later.map(x => li(x, false)).join('') + '</ul>';
+    if (o.note !== false) h += '<p class="levx-n">' + esc(o.note || 'Chọn hoặc bỏ hành động ở tab Dự báo & hành động.') + '</p>';
     el.innerHTML = h; }
   // bật/tắt khung: bấm thanh hành động (series si) hoặc nút; giữ trạng thái khi trang vẽ lại
   let open = false;
@@ -1859,7 +1854,7 @@ function tabDieuHanh(){
     series: rw.map(([n, v, col], i) => ({ name:n, type:'bar', stack:'a', barWidth:34, data:[v], cursor: i === 2 ? 'pointer' : 'default', itemStyle:{ color: i === 1 ? col : i === 2 ? upFill() : i === 3 ? dnFill() : totFill(), borderRadius: i === 0 ? rad([8,0,0,8]) : i === 3 ? rad([0,8,8,0]) : 0, opacity: i === 1 ? .9 : 1 },
       label:{ show: v > y.pl.eb*(nw ? 0.16 : 0.03), color: i === 1 ? T.ink : '#fff', fontFamily:T.num, fontSize:11, fontWeight:600, formatter: () => money(v) },
       markLine: i === 0 ? { symbol:'none', silent:true, lineStyle:{ color:T.ink, type:'dashed', width:1.5 }, label:{ formatter:'Kế hoạch\n' + money(y.pl.eb), color:T.ink, fontSize:11, fontWeight:600, position:'end' }, data:[{ xAxis:y.pl.eb }] } : undefined })) }, true);
-  V5Lev.render(document.getElementById('rwLev'), { items: lv.items.map(x => ({ id:x.k, name:x.n, who:x.who, v:x.q, y:x.y })), total:lv.q, year:y.y, money, yLabel:'12 tháng tới' });
+  V5Lev.render(document.getElementById('rwLev'), { items: lv.items.map(x => ({ id:x.k, name:x.ngan || x.n, who:x.who, v:x.q, y:x.y })), total:lv.q, year:y.y, money, yLabel:'12 tháng tới' });
   V5Lev.bind(c, 2);
   // EBITDA theo tháng
   monthBars('cDhMonth', 'eb', 'EBITDA');
@@ -2124,7 +2119,7 @@ function tabDuBao(){
       { name:'Lũy kế kế hoạch', type:'line', smooth:true, symbol:'none', color:T.total, data:cpl, lineStyle:{ width:1.8, type:'dashed' } },
       { name:'EBITDA tháng', type:'bar', barWidth:'46%', color:T.soft, data: Y.map(t => ({ value:m.M.eb[t], itemStyle:{ opacity: isFc(t) ? .45 : 1, borderRadius: rad([5,5,0,0]) } })) } ] }, true);
   // bảng hành động
-  document.getElementById('dbLevTb').tBodies[0].innerHTML = lv.items.map(x => '<tr data-k="' + x.k + '" class="' + (LEVOFF[x.k] ? 'off' : '') + '"><td><label class="ck"><input type="checkbox" ' + (LEVOFF[x.k] ? '' : 'checked') + ' data-k="' + x.k + '" aria-label="Chọn ' + esc(x.n) + '"><span>' + esc(x.n) + '</span></label></td><td>' + esc(x.who) + '</td><td class="num">' + (x.q ? money(x.q, true) : '–') + '</td><td class="num">' + (x.y ? money(x.y, true) : '–') + '</td><td class="note">' + esc(x.note || '') + '</td></tr>').join('') +
+  document.getElementById('dbLevTb').tBodies[0].innerHTML = lv.items.map(x => '<tr data-k="' + x.k + '" class="' + (LEVOFF[x.k] ? 'off' : '') + '"><td><label class="ck"><input type="checkbox" ' + (LEVOFF[x.k] ? '' : 'checked') + ' data-k="' + x.k + '" aria-label="Chọn ' + esc(x.ngan || x.n) + '"><span>' + esc(x.ngan || x.n) + '</span></label></td><td>' + esc(x.who) + '</td><td class="num">' + (x.q ? money(x.q, true) : '–') + '</td><td class="num">' + (x.y ? money(x.y, true) : '–') + '</td><td class="note">' + esc(x.note || '') + '</td></tr>').join('') +
     '<tr class="tot"><td>Tổng các hành động đang chọn</td><td></td><td class="num">' + money(q, true) + '</td><td class="num">' + money(y12, true) + '</td><td></td></tr>';
   // P&L cả năm dự báo vs kế hoạch
   const R = [ ['Doanh thu','rev'], ['LN đóng góp','cm'], ['Định phí','fix',1], ['EBITDA quản trị','eb'], ['Khấu hao','da',1], ['Lãi vay','lv',1], ['LN trước thuế','lntt'] ];
