@@ -1009,21 +1009,21 @@ var LBDieuHanh = (function () {
       const out = [];
       // 1 phụ thu NVL cho phần giá NVL tăng sau kỳ chốt, từ tháng sau tháng đang chạy
       const lagR2 = Ssum(LAG, R2);
-      out.push({ k: 'phu_thu', n: 'Phụ thu NVL cho phần giá nhựa tăng sau kỳ chốt', who: 'Sales, Sourcing', q: PA.dat * lagR2, y: 0, base: lagR2, note: `thu được ${Math.round(PA.dat * 100)}% của ${R2.length} tháng còn lại` });
+      out.push({ k: 'phu_thu', n: 'Áp dụng phụ thu NVL cho phần giá nhựa tăng sau kỳ chốt giá', who: 'Sales, Sourcing', q: PA.dat * lagR2, y: 0, base: lagR2, note: `thu được ${Math.round(PA.dat * 100)}% của ${R2.length} tháng còn lại` });
       // 2 điều chỉnh giá hằng quý theo chỉ số NVL thay vì chốt theo kỳ hiện hành
       const qr = Y.filter(t => (t - y0) % 3 === 0), lagCur = sum(Y.map(t => lagWith(t, RESETS))), lagQ = sum(Y.map(t => lagWith(t, qr)));
       out.push({ k: 'gia_quy', n: 'Điều chỉnh giá hằng quý theo chỉ số nhựa', who: 'CEO, Sales', q: 0, y: Math.max(0, lagCur - lagQ), base: lagCur, alt: lagQ, note: `phần chưa vào giá cả năm ${E.yearOf(e)} giảm từ chốt hiện hành xuống chốt theo quý` });
       // 3 rebate: tỷ lệ kỳ này về mức cùng kỳ cho phần cam kết
       const pr = priceRebate(P), dr = pr.rl != null && pr.r != null ? Math.max(0, pr.r - pr.rl) : 0;
-      out.push({ k: 'rebate', n: `Rebate khách key về ${pr.rl != null ? (pr.rl * 100).toFixed(1).replace('.', ',') : '—'}% cho phần cam kết, mức cao chỉ cho phần vượt`, who: 'Sales', q: PA.dat * dr * Ssum(REV_K, R2), y: dr * Ssum(REV_K, Y), base: dr, note: `chênh tỷ lệ rebate × doanh thu khách key` });
+      out.push({ k: 'rebate', n: `Giảm rebate khách hàng key xuống ${pr.rl != null ? (pr.rl * 100).toFixed(1).replace('.', ',') : '—'}% cho sản lượng cam kết, chỉ áp mức cao cho phần vượt cam kết`, who: 'Sales', q: PA.dat * dr * Ssum(REV_K, R2), y: dr * Ssum(REV_K, Y), base: dr, note: `chênh tỷ lệ rebate × doanh thu khách key` });
       // 4 bán thêm vào công suất còn trống của nhóm chạy dưới mục tiêu
       const mx = mixShift(P, 'ly') || mixShift(P, 'plan'), cmkg = g => { const x = (mx ? mx.groups : []).find(o => o.g === g); return x ? x.cmkg : 0; };
       const kgsx = PLc.kg_sx || [], room = GROUPS.map(g => { const u = (CS[g] || [])[e], q = ((kgsx[e] || {})[g]) || 0; return { g, u, q, room: u > 0 && u < PA.cong_suat_muc_tieu ? q * (PA.cong_suat_muc_tieu / u - 1) : 0, cmkg: cmkg(g) }; }).filter(r => r.room > 0);
-      out.push({ k: 'cong_suat', n: `Bán thêm ${room.map(r => r.g).join(', ')} vào công suất còn trống đến ${Math.round(PA.cong_suat_muc_tieu * 100)}%`, who: 'Sales', q: 0, y: PA.dat * 12 * sum(room.map(r => r.room * r.cmkg)), base: room, note: `đạt ${Math.round(PA.dat * 100)}% phần trống, theo LN đóng góp/kg của kỳ` });
+      out.push({ k: 'cong_suat', n: `Tăng bán ${room.map(r => r.g).join(', ')} để khai thác công suất còn trống đến ${Math.round(PA.cong_suat_muc_tieu * 100)}%`, who: 'Sales', q: 0, y: PA.dat * 12 * sum(room.map(r => r.room * r.cmkg)), base: room, note: `đạt ${Math.round(PA.dat * 100)}% phần trống, theo LN đóng góp/kg của kỳ` });
       // 5 hao hụt về mục tiêu; quý còn lại: thêm định phí vượt ngân sách của các nhóm theo dõi
       const hh = PLc.hao_hut_sx || z(), nv = PLc.nvl_dinh_muc || z(), rate = div(Ssum(hh, P.cur), Ssum(nv, P.cur)) || 0, ex = Math.max(0, rate - PA.hao_hut_muc_tieu);
       const over = PLN ? (CF.dinh_phi_ve_ngan_sach || []).reduce((s, c) => s + R2.reduce((a, t) => a + Math.max(0, (M['f:' + c] || [])[t] - ((PLN['f:' + c] || [])[t] || 0)), 0), 0) : 0;
-      out.push({ k: 'hao_hut', n: `Hao hụt về ${(PA.hao_hut_muc_tieu * 100).toFixed(1).replace('.', ',')}%${over ? '; ' + (CF.dinh_phi_ve_ngan_sach || []).map(c => c.toLowerCase()).join(', ') + ' về ngân sách' : ''}`, who: 'COO, HRD, CFO', q: PA.dat * (ex * Ssum(nv, R2) + over), y: ex * Ssum(nv, Y), base: rate, note: '12 tháng chỉ tính hao hụt' });
+      out.push({ k: 'hao_hut', n: `Giảm hao hụt xuống ${(PA.hao_hut_muc_tieu * 100).toFixed(1).replace('.', ',')}%${over ? '; kiểm soát ' + (CF.dinh_phi_ve_ngan_sach || []).map(c => c.toLowerCase()).join(', ') + ' trong ngân sách' : ''}`, who: 'COO, HRD, CFO', q: PA.dat * (ex * Ssum(nv, R2) + over), y: ex * Ssum(nv, Y), base: rate, note: '12 tháng chỉ tính hao hụt' });
       const tq = sum(out.map(o => o.q)), ty = sum(out.map(o => o.y));
       return { items: out, q: tq, y: ty, R2, Y };
     }
@@ -1032,13 +1032,13 @@ var LBDieuHanh = (function () {
       // 1 khách key về độ trễ cùng kỳ: số ngày trễ thêm × doanh thu có VAT bình quân một ngày (3 tháng gần nhất)
       const days = ts3.length * 30.42, revC = k => { let v = 0; ts3.forEach(t => { for (let L = 0; L < NL; L++) if (custOf(L) === k) v += CMX.rev[t][L]; }); return v; };
       const keyR = rc.rows.filter(r => r.key && r.late != null && r.lateL != null && r.late > r.lateL).map(r => Object.assign({}, r, { cash: (r.late - r.lateL) * revC(r.kh) * (1 + PA.vat) / days }));
-      out.push({ k: 'tre_key', n: `Đưa ${keyR.map(r => r.name).join(', ')} về độ trễ như cùng kỳ`, who: 'Sales, CFO', v: sum(keyR.map(r => r.cash)), rows: keyR });
+      out.push({ k: 'tre_key', n: `Rút ngắn thời gian thanh toán của ${keyR.map(r => r.name).join(', ')} về mức cùng kỳ`, who: 'Sales, CFO', v: sum(keyR.map(r => r.cash)), rows: keyR });
       const odN = rc.rows.filter(r => !r.key && r.od > 0);
-      out.push({ k: 'qua_han', n: `Thu hết quá hạn của ${odN.length} khách thường`, who: 'CFO', v: sum(odN.map(r => r.od)), rows: odN });
+      out.push({ k: 'qua_han', n: `Thu hồi toàn bộ nợ quá hạn của ${odN.length} khách thường`, who: 'CFO', v: sum(odN.map(r => r.od)), rows: odN });
       if (st && st.nextT > e) {
-        out.push({ k: 'dung_mua', n: `Dừng mua NVL đón giá, giữ tồn ≤ ${(st.next / 1e9).toFixed(2).replace('.', ',')} tỷ`, who: 'Sourcing', v: Math.max(0, st.ye - st.next) });
+        out.push({ k: 'dung_mua', n: `Dừng mua NVL dự trữ trước tăng giá, giới hạn tồn kho ở ${(st.next / 1e9).toFixed(2).replace('.', ',')} tỷ`, who: 'Sourcing', v: Math.max(0, st.ye - st.next) });
         const tgt = PA.ton_nvl_thang * st.use;
-        out.push({ k: 've_muc', n: `Tồn NVL về ${String(PA.ton_nvl_thang).replace('.', ',')} tháng dùng (≈ ${(tgt / 1e9).toFixed(1).replace('.', ',')} tỷ)`, who: 'Sourcing, COO', v: Math.max(0, Math.min(st.next, st.ye) - tgt) });
+        out.push({ k: 've_muc', n: `Giảm tồn kho NVL xuống ${String(PA.ton_nvl_thang).replace('.', ',')} tháng sử dụng (≈ ${(tgt / 1e9).toFixed(1).replace('.', ',')} tỷ)`, who: 'Sourcing, COO', v: Math.max(0, Math.min(st.next, st.ye) - tgt) });
       }
       const tot = sum(out.map(o => o.v)), d = debt(P);
       return { items: out, v: tot, debtYe: d.ye, debtAfter: Math.max(0, d.ye - tot) };
