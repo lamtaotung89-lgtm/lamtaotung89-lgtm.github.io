@@ -1460,9 +1460,12 @@ var LBDieuHanh = (function () {
       const sLo = spRun(TSP.tang_thap, Rg), sHi = spRun(TSP.tang_cao, Rg), yLo = spRun(TSP.tang_thap, N12), yHi = spRun(TSP.tang_cao, N12);
       const spRows = spPairs.map((p, i) => Object.assign({}, p, { kg_thap: sLo[i].kg, kg_cao: sHi[i].kg, v: sLo[i].v, v_cao: sHi[i].v, y: yLo[i].v, y_cao: yHi[i].v, kg12_thap: yLo[i].kg, kg12_cao: yHi[i].kg }));
       const spV = sum(spRows.map(r => r.v)), spV5 = sum(spRows.map(r => r.v_cao)), spY = sum(spRows.map(r => r.y)), spY5 = sum(spRows.map(r => r.y_cao)), nKh = khSel.length;
-      const pc = x => Math.round(x * 100), trd = v => Math.round(v / 1e6).toLocaleString('vi-VN') + ' tr';
+      // tiền ở dòng phụ, ghi chú: tỷ đồng hai số lẻ như khối Executive summary (đặc tả es-sua-sau-review-18-11 mục 1)
+      const pc = x => Math.round(x * 100), trd = v => (Math.abs(v) / 1e9).toFixed(2).replace('.', ',') + ' tỷ đồng';
+      // 12 tháng tới có tháng chưa có dự báo trong dữ liệu (lấp bằng sản lượng bình quân tháng lũy kế): ghi rõ ở dòng phụ (mục 3)
+      const lap12 = N12.some(t => !(live && t <= L0));
       if (spV > 0 || spY > 0) out.push({ k: 'tang_sp', ngan: `Tăng ${pc(TSP.tang_thap)}–${pc(TSP.tang_cao)}% sản lượng cho ${nKh} khách hàng biên cao từ ${E.mLabel(e + TSP.tu_thang_sau)}`, n: `Tăng ${pc(TSP.tang_thap)}–${pc(TSP.tang_cao)}% sản lượng cho ${nKh} khách hàng có lợi nhuận đóng góp mỗi kg thuộc nhóm ${pc(TSP.ty_le_top)}% cao nhất, giữ giá bán`, who: 'Sales', q: spV, y: spY, q_cao: spV5, y_cao: spY5, base: spRows,
-        phu: `nếu đạt ${pc(TSP.tang_cao)}%: ${trd(spV5)} trong năm, ${trd(spY5)} 12 tháng tới`,
+        phu: `nếu đạt ${pc(TSP.tang_cao)}%: ${trd(spV5)} trong năm, ${trd(spY5)} 12 tháng tới` + (lap12 ? '; 12 tháng tới ước tính theo sản lượng bình quân' : ''), lap12,
         note: `số chính ở mức ${pc(TSP.tang_thap)}% sản lượng dự báo của ${spRows.length} cặp khách hàng × nhóm sản phẩm (${spRows.map(r => r.name + ' · ' + r.g).join('; ')}), giữ giá bán và lợi nhuận đóng góp mỗi kg, không vượt công suất ${pc(PA.cong_suat_muc_tieu)}%; nếu đạt ${pc(TSP.tang_cao)}%: ${trd(spV5)} trong năm` });
       const tq = sum(out.map(o => o.q)), ty = sum(out.map(o => o.y));
       return { items: out, q: tq, y: ty, R2, Y, trich };
@@ -1928,8 +1931,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = api; else 
   const ty = v => ok(v) ? nf2.format(Math.abs(v) / 1e9) : '–';
   const tyD = v => ty(v) + ' tỷ đồng';
   const tyS = v => !ok(v) ? '–' : (Math.round(v / 1e7) > 0 ? '+' : Math.round(v / 1e7) < 0 ? '−' : '') + ty(v);
+  // số tiền trong ô, bảng, danh sách của khối Executive summary: tỷ, hai chữ số thập phân; dấu − khi âm, dấu + khi sign
+  // (đặc tả es-sua-sau-review-18-11 mục 1: một chỉ tiêu một con số trong khối #es)
+  const tyT = (v, sign) => !ok(v) ? '–' : (Math.round(v / 1e7) < 0 ? '−' : sign && Math.round(v / 1e7) > 0 ? '+' : '') + ty(v) + ' tỷ';
   const p0 = v => ok(v) ? nf0.format(Math.round(Math.abs(v) * 100)) + '%' : '–';
+  // tỷ lệ so cùng kỳ, so kế hoạch trong khối #es (trừ tiêu đề ba vế): một chữ số thập phân
   const p1 = v => ok(v) ? nf1.format(Math.abs(v) * 100) + '%' : '–';
+  const p1s = v => !ok(v) ? '–' : (Math.round(v * 1000) > 0 ? '+' : Math.round(v * 1000) < 0 ? '−' : '') + p1(v);
   const p0s = v => !ok(v) ? '–' : (Math.round(v * 100) > 0 ? '+' : Math.round(v * 100) < 0 ? '−' : '') + p0(v);
   const ppt = (a, b) => nf1.format(Math.abs(Math.round(a * 1000) - Math.round(b * 1000)) / 10) + ' điểm phần trăm';
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
@@ -1945,12 +1953,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = api; else 
     if (k.loai === 'tuy_chon') return 'tháng ' + k.tu_thang + ' đến tháng ' + k.thang + '/' + k.nam;
     return k.n + ' tháng';
   }
-  // vế 2: tăng, giảm bao nhiêu % so với cùng kỳ (cùng kỳ ≤ 0 thì nêu số tiền)
-  function vsCK(cur, ck) {
+  // vế 2: tăng, giảm bao nhiêu % so với cùng kỳ (cùng kỳ ≤ 0 thì nêu số tiền). dp = 1: một số lẻ (chữ trong khối #es); mặc định số nguyên (tiêu đề)
+  function vsCK(cur, ck, dp) {
     if (!ok(cur) || !ok(ck)) return null;
     if (ck <= 0) return Math.round((cur - ck) / 1e7) === 0 ? 'ngang cùng kỳ' : (cur > ck ? 'tăng ' : 'giảm ') + tyD(cur - ck) + ' so với cùng kỳ';
-    const g = cur / ck - 1;
-    return Math.round(g * 100) === 0 ? 'ngang cùng kỳ' : (g > 0 ? 'tăng ' : 'giảm ') + p0(g) + ' so với cùng kỳ';
+    const g = cur / ck - 1, f = dp === 1 ? p1 : p0, z = dp === 1 ? Math.round(g * 1000) === 0 : Math.round(g * 100) === 0;
+    return z ? 'ngang cùng kỳ' : (g > 0 ? 'tăng ' : 'giảm ') + f(g) + ' so với cùng kỳ';
   }
   const vsKH = (cur, kh) => !ok(cur) || !ok(kh) ? null : Math.round((cur - kh) / 1e7) === 0 ? 'bằng kế hoạch' : (cur > kh ? 'vượt' : 'thấp hơn') + ' kế hoạch ' + tyD(cur - kh);
   // tiêu đề ba vế (đặc tả sx-tieu-de-va-hanh-dong-moi mục 1, executive-summary-trong-dashboard mục 2):
@@ -2021,7 +2029,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = api; else 
     window.addEventListener('afterprint', off);
     try { window.print(); } finally { setTimeout(off, 0); }
   }
-  return { ok, ty, tyD, tyS, p0, p1, p0s, ppt, cap, low, joinVi, esc, soChu, kyTen, vsCK, vsKH, tieuDe, ba, fill, printBtn, inEs, style };
+  return { ok, ty, tyD, tyS, tyT, p0, p1, p1s, p0s, ppt, cap, low, joinVi, esc, soChu, kyTen, vsCK, vsKH, tieuDe, ba, fill, printBtn, inEs, style };
 });
 
 ;
@@ -2031,7 +2039,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = api; else 
 // tools/v5/exec giữ lại đến khi bản trong dashboard chốt, sau đó chuyển vào legacy/.
 window.V5EsSX = (function () {
   'use strict';
-  const X5 = window.V5ES, { ok, tyD, ty, p0, p1, cap, low, joinVi, ppt, ba } = X5;
+  const X5 = window.V5ES, { ok, tyD, ty, p1, cap, low, joinVi, ppt, ba } = X5;
+  // trong khối #es mọi tỷ lệ so cùng kỳ, so kế hoạch một số lẻ (đặc tả es-sua-sau-review-18-11 mục 1); tiêu đề ba vế làm tròn đơn vị qua V5ES.tieuDe
+  const p0 = p1;
   const sum = a => a.reduce((s, x) => s + (+x || 0), 0);
   const nf0 = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 });
   const NUM = ['một', 'hai', 'ba', 'bốn'];
@@ -2046,7 +2056,7 @@ window.V5EsSX = (function () {
     const tons = kg => nf0.format(Math.round(Math.abs(kg) / 1000));
     const up = v => v >= 0 ? 'tăng' : 'giảm';
     const vsP = (v, unit) => (v >= 0 ? 'vượt' : 'thấp hơn') + ' kế hoạch ' + unit(v);
-    const lyPct = g => !ok(g) ? '' : Math.round(g * 100) === 0 ? 'đi ngang so với cùng kỳ' : up(g) + ' ' + p0(g) + ' so với cùng kỳ';
+    const lyPct = g => !ok(g) ? '' : Math.round(g * 1000) === 0 ? 'đi ngang so với cùng kỳ' : up(g) + ' ' + p0(g) + ' so với cùng kỳ';
     const pmT = pm === 'month' ? 'thang' : pm === 'custom' ? 'tuy_chon' : 'ytd';
     const kyH = X5.kyTen({ loai: pmT, n, thang: E.moy(e) + 1, nam: E.yearOf(e), tu_thang: E.moy(P.cur[0]) + 1 });
     const kyName = pm === 'month' ? cap(mon(e)) : pm === 'ytd' ? 'Lũy kế ' + n + ' tháng năm ' + E.yearOf(e) : 'Từ ' + mon(P.cur[0]) + ' đến ' + mon(e);
@@ -2265,6 +2275,8 @@ const vsShort = b => b ? (b.kind === 'plan' ? 'so KH' : 'so ' + b.name.replace('
 
 // ===== TAB 00 · ĐIỀU HÀNH =====
 function tabDieuHanh(){
+  // trong khối Executive summary mọi số tiền là tỷ, hai số lẻ (đặc tả es-sua-sau-review-18-11 mục 1: một chỉ tiêu một con số); các tab khác giữ money
+  const money = V5ES.tyT;
   const { P, b, X } = per(); const B = b ? b.X : null; const y = m.year(P), lv = m.levers(P), d = m.debt(P), ca = m.cash(P);
   const dE = B ? X.eb - B.eb : 0, rate = B && B.eb ? X.eb / B.eb : null;
   // Executive summary (đặc tả executive-summary-trong-dashboard.md): tiêu đề ba vế và What, Why, Now What thay câu hero cũ
@@ -2319,10 +2331,10 @@ function tabDieuHanh(){
   const upKg = ms ? sum(ms.rows.filter(r => r.dkg > 0).map(r => r.dkg)) : 0, low = ms ? ms.rows.filter(r => r.dkg > 0 && ms.groups && ms.groups.length && r.g === ms.groups[0].g) : [];
   const lowKg = sum(low.map(r => r.dkg)); const phoi = (cp.util.find(u => u.g === 'Phôi') || {});
   const causes = [
-    { t:'Cơ cấu bán hàng bất lợi', big: upKg ? nf0.format(lowKg/upKg*100) + '%' : '–', s:'sản lượng tăng thêm thuộc ' + (ms && ms.groups[0] ? esc(ms.groups[0].g) : '') + ', nhóm có LN đóng góp/kg thấp nhất' + (ms && ms.groups[0] ? ' (' + nf0.format(ms.groups[0].cmkg) + ' đ/kg)' : ''), go:'doanh-thu' },
+    { t:'Cơ cấu bán hàng bất lợi', big: upKg ? nf1d.format(lowKg/upKg*100) + '%' : '–', s:'sản lượng tăng thêm thuộc ' + (ms && ms.groups[0] ? esc(ms.groups[0].g) : '') + ', nhóm có LN đóng góp/kg thấp nhất' + (ms && ms.groups[0] ? ' (' + nf0.format(ms.groups[0].cmkg) + ' đ/kg)' : ''), go:'doanh-thu' },
     { t:'Rebate và giá nhựa', big: money(pr.dReb + pr.lag, true).replace('+',''), s:'rebate khách hàng key tăng từ ' + pct(pr.rl) + ' lên ' + pct(pr.r) + ' (+' + money(pr.dReb) + '); giá nhựa chưa chuyển vào giá bán ' + money(pr.lag), go:'doanh-thu' },
-    { t:'Vượt công suất khuyến cáo', big: phoi.end != null ? nf0.format(phoi.end*100) + '%' : '–', s:'hiệu suất Phôi cuối kỳ; giờ tăng ca từ ' + nf0.format(cp.otL || 0) + ' lên ' + nf0.format(cp.ot) + '; sửa chữa đột xuất ' + money((cp.items.find(i => i.k === 'sua_dot_xuat') || {}).v), go:'bien-dinh-phi' },
-    { t:'Chuyển đổi tiền thấp', big: pct(ca.conv).replace(',0',''), s:'tiền từ hoạt động kinh doanh/EBITDA (cùng kỳ ' + pct(ca.convL) + '); dư nợ vay ' + money(d.end), go:'tien' } ];
+    { t:'Vượt công suất khuyến cáo', big: phoi.end != null ? nf1d.format(phoi.end*100) + '%' : '–', s:'hiệu suất Phôi cuối kỳ; giờ tăng ca từ ' + nf0.format(cp.otL || 0) + ' lên ' + nf0.format(cp.ot) + '; sửa chữa đột xuất ' + money((cp.items.find(i => i.k === 'sua_dot_xuat') || {}).v), go:'bien-dinh-phi' },
+    { t:'Chuyển đổi tiền thấp', big: pct(ca.conv), s:'tiền từ hoạt động kinh doanh/EBITDA (cùng kỳ ' + pct(ca.convL) + '); dư nợ vay ' + money(d.end), go:'tien' } ];
   document.getElementById('dhCauses').innerHTML = causes.map((x,i) => '<button type="button" class="cause" data-go="' + x.go + '"><span class="cn">' + (i+1) + '</span><span class="cb"><span class="ct">' + x.t + '</span><span class="cv">' + x.big + '</span><span class="cs">' + x.s + '</span></span><span class="arr">' + SV('<path d="M9 6l6 6-6 6"/>') + '</span></button>').join('');
 }
 // cột theo tháng (24 tháng) cho một dòng P&L, kèm đường kế hoạch; bấm cột = xem tháng đó
