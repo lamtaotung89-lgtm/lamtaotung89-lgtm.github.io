@@ -564,13 +564,19 @@ window.PP = (function () {
   function plan(M, a) {
     const F = M.F, yr = yOf(M, a), yrR = year(M, yr), T_ = M.tong, NS = M.nst;
     const rest = a < yrR[1] ? [a + 1, yrR[1]] : null, nRest = rest ? rest[1] - rest[0] + 1 : 0;
-    const fc = sumR(T_.lntt, yrR), pl = NS.lntt ? sumR(NS.lntt, yrR) : null, act = sumR(T_.lntt, [yrR[0], a]);
+    // Đứng ở tháng trước tháng thực tế cuối (a < TT): cả năm = thực tế đến a + kế hoạch các tháng còn lại; hành động không dùng số các tháng
+    // sau a: chuỗi các tháng còn lại lấy bình quân tháng lũy kế đến a × số tháng còn lại; hành động gắn với quý chưa bắt đầu tại a thì không nêu
+    // (quy tắc Tao 13/11; đặc tả es-sua-sau-review-18-11 mục 4). Đứng ở tháng thực tế cuối: không đổi gì.
+    const past = a < M.TT, ytdR = [yrR[0], a], nY = a - yrR[0] + 1;
+    const restSum = (arr) => !rest ? 0 : past ? (nY > 0 ? sumR(arr, ytdR) / nY * nRest : 0) : sumR(arr, rest);
+    const act = sumR(T_.lntt, [yrR[0], a]), fc = past ? act + (NS.lntt && rest ? sumR(NS.lntt, rest) : 0) : sumR(T_.lntt, yrR), pl = NS.lntt ? sumR(NS.lntt, yrR) : null;
     const L = [];
     const add = (id, ten, mo_ta, trong_nam, mot_nam, go, muc0, ct) => { if (!(trong_nam > 0) && !(mot_nam > 0)) return; L.push({ id, ten, mo_ta, trong_nam: Math.max(0, trong_nam || 0), mot_nam: Math.max(0, mot_nam || 0), go, muc0: muc0 == null ? 1 : muc0, ct: ct || {} }); };
     // 1. đạt mốc thưởng tiến độ còn thiếu (quý đang chạy sau tháng mốc)
     if (rest) { const tn = rest[0], qs = tn - ((M.t0 + tn) % 12) % 3;
       M.hang.forEach(h => { const q = F.thuong.quy.find(z => z.hang === h.ma && z.t === qs); if (!q || !q.muc_tieu) return;
-        const proj = sum(q.mua), moc = (F.thuong.moc[h.ma] || []), prog = proj / q.muc_tieu, rate = moc.reduce((r, m) => prog >= m.tu - 1e-12 ? m.muc : r, 0), nx = moc.find(m => m.tu > prog + 1e-12);
+        if (past && qs > a) return; // quý chưa bắt đầu tại tháng đứng: chưa có số mua để tính tiến độ
+        const kq = a - qs + 1, proj = past ? sum((q.mua || []).slice(0, kq)) * 3 / kq : sum(q.mua), moc = (F.thuong.moc[h.ma] || []), prog = proj / q.muc_tieu, rate = moc.reduce((r, m) => prog >= m.tu - 1e-12 ? m.muc : r, 0), nx = moc.find(m => m.tu > prog + 1e-12);
         if (!nx) return; const need = q.muc_tieu * nx.tu - proj; if (need > proj * 0.25) return;
         const gain = nx.muc * (proj + need) - rate * proj - 0.015 * need;
         add('moc_' + h.ma, `Mua thêm để ${h.ten} đạt mốc ${nx.moc} ${q.quy}`, `Dự kiến mua ${money(proj)} = ${pct(prog, 0)} mục tiêu; cần thêm ${money(need)} để lên mức thưởng ${pct(nx.muc, 1)} (đã trừ 1,5% chi phí vốn của hàng mua thêm)`, gain, 0, 'thuong-claim', undefined, { du_kien_mua: proj, ty_le_tien_do: prog, mua_them: need, muc_thuong: nx.muc }); }); }
@@ -582,12 +588,12 @@ window.PP = (function () {
     // 3. tăng giá bán theo giá mua (hãng có giá mua tăng nhanh hơn giá bán trong 12 tháng)
     if (rest) M.hang.forEach(h => { const gb = F.ban.gia_ban[h.ma], gm = F.ban.gia_mua[h.ma], a0 = Math.max(0, a - 12); if (!gb || !gm || !gb[a0] || !gm[a0]) return;
       const gap = gm[a] / gm[a0] - gb[a] / gb[a0]; if (gap < 0.003) return;
-      const grRest = sum(Object.keys(M.cell).filter(k => k.startsWith(h.ma + '|')).map(k => sumR(M.cell[k].gr, rest))), gr12 = sum(Object.keys(M.cell).filter(k => k.startsWith(h.ma + '|')).map(k => sumR(M.cell[k].gr, [Math.max(0, a - 11), a])));
+      const grRest = sum(Object.keys(M.cell).filter(k => k.startsWith(h.ma + '|')).map(k => restSum(M.cell[k].gr))), gr12 = sum(Object.keys(M.cell).filter(k => k.startsWith(h.ma + '|')).map(k => sumR(M.cell[k].gr, [Math.max(0, a - 11), a])));
       add('gia_' + h.ma, `Tăng giá bán ${h.ten} theo giá mua`, `12 tháng qua giá mua tăng nhanh hơn giá bán ${pct(gap, 1)}; tăng giá từ tháng sau, giữ 60% phần tăng sau giảm sản lượng`, grRest * gap * 0.6, gr12 * gap * 0.6, 'ban-hang', undefined, { chenh_gia_pct: gap }); });
     // 4. gộp đơn nhỏ ở kênh có chi phí phục vụ / đơn tăng so với cùng kỳ
     if (rest && a >= 14) Object.entries(F.phuc_vu.theo_kenh).forEach(([ch, x]) => { if (ch === F.kenh_san) return;
       const r3 = [a - 2, a], ly = [a - 14, a - 12], cpo = sumR(x.cp, r3) / (sumR(x.don, r3) || 1), cpoL = sumR(x.cp, ly) / (sumR(x.don, ly) || 1);
-      if (!(cpo > cpoL * 1.05)) return; const donR = sumR(x.don, rest), don12 = sumR(x.don, [a - 11, a]);
+      if (!(cpo > cpoL * 1.05)) return; const donR = restSum(x.don), don12 = sumR(x.don, [a - 11, a]);
       add('gop_' + ch, `Gộp đơn nhỏ kênh ${M.nameK[ch] || ch}`, `Chi phí phục vụ ${num0(cpo)} đ/đơn, cùng kỳ ${num0(cpoL)} đ/đơn; đặt mức đơn tối thiểu, gom lịch giao để lấy lại một nửa phần tăng`, (cpo - cpoL) * donR * 0.5, (cpo - cpoL) * don12 * 0.5, 'phuc-vu', undefined, { so_dong_moi_don: cpo, so_dong_moi_don_cung_ky: cpoL }); });
     // 5. giảm huỷ hàng: bán đẩy lô cận date trước khi hết hạn (phần công ty chịu)
     { const cd = sum(M.hang.map(h => F.kho.can_date[h.ma][a])); if (cd > 0 && rest) add('huy', 'Đẩy bán lô cận date trước khi hết hạn', `Tồn cận date cuối ${short(M, a)} ${money(cd)}; công ty chịu một nửa nếu phải huỷ, bán được 70% với chiết khấu 5%`, cd * 0.5 * 0.7 - cd * 0.7 * 0.05, 0, 'kho', undefined, { ton_can_date: cd }); }

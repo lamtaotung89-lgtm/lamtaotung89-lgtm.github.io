@@ -783,20 +783,30 @@ window.FM = (function () {
     const F = M.F, TT = M.TT, yr = FM.yOf(M, TT), yrR = FM.year(M, yr), T = M.tong, NS = M.nst;
     const s0 = Math.min(asof, TT), ytd = [yrR[0], Math.max(yrR[0], s0)];
     const rs = Math.max(yrR[0], s0 + 1), rem = rs <= yrR[1] ? [rs, yrR[1]] : null, remN = rem ? rem[1] - rem[0] + 1 : 0;
-    const Y = l => sum(T[l], yrR), PY = l => NS[l] ? sum(NS[l], yrR) : null;
+    // Đứng ở tháng trước tháng thực tế cuối (asof < TT): hành động, rủi ro không dùng số các tháng sau tháng đứng (quy tắc Tao 13/11;
+    // đặc tả es-sua-sau-review-18-11 mục 4). Các chuỗi tháng sau asof thay bằng bình quân tháng lũy kế đến asof; cả năm = thực tế đến asof
+    // + kế hoạch các tháng còn lại (cùng cách FMCau.caNam). Đứng ở tháng thực tế cuối: không đổi gì.
+    const past = asof < TT, ytdB = s0 >= yrR[0] ? [yrR[0], s0] : [Math.max(0, s0 - 11), s0];
+    const avgA = a => { let x = 0, n = 0; for (let t = ytdB[0]; t <= ytdB[1]; t++) { x += (a || [])[t] || 0; n++; } return n ? x / n : 0; };
+    const maskA = a => { if (!past || !Array.isArray(a)) return a; const v = avgA(a), o = a.slice(); for (let t = s0 + 1; t < o.length; t++) o[t] = v; return o; };
+    const maskO = o => { if (!past || !o) return o; const r = {}; Object.keys(o).forEach(k => { r[k] = Array.isArray(o[k]) ? maskA(o[k]) : o[k]; }); return r; };
+    const Tm = past ? maskO(T) : T;
+    const Y = l => past ? sum(T[l], [yrR[0], s0]) + (NS[l] && rem ? sum(NS[l], rem) : 0) : sum(T[l], yrR), PY = l => NS[l] ? sum(NS[l], yrR) : null;
     const fcEBT = Y('ebt'), planEBT = PY('ebt'), gap = planEBT != null ? planEBT - fcEBT : null;
     const each = (fn) => { let x = 0; if (rem) for (let t = rem[0]; t <= rem[1]; t++) x += Math.max(0, fn(t) || 0); return x; };
     const nsAt = (l, t) => (NS[l] || [])[t];
     const han1 = eom(M, Math.min(M.N - 1, s0 + 1));
-    const K = F.theo_kenh || {}, ytdC = s0 >= yrR[0] ? ytd : [Math.max(0, s0 - 11), s0];
+    const K0 = F.theo_kenh || {}, K = past ? Object.fromEntries(Object.entries(K0).map(([k, o]) => [k, maskO(o)])) : K0, ytdC = s0 >= yrR[0] ? ytd : [Math.max(0, s0 - 11), s0];
     const planCh = {}; Object.entries(M.nsc).forEach(([key, c]) => { const ch = key.split('|')[0]; const o = planCh[ch] = planCh[ch] || { gr: new Array(M.N).fill(0), dfr: new Array(M.N).fill(0) }; c.gr && c.gr.forEach((v, t) => { o.gr[t] += v || 0; }); c.dfr && c.dfr.forEach((v, t) => { o.dfr[t] += v || 0; }); });
-    const levers = [];
+    const levers = [], Km = K;
     if (rem) {
-      const lbR = FM.rangeLabel(M, rem), past = rem[0] <= TT ? ` (T${FM.mOf(M, rem[0])}–${FM.short(M, Math.min(TT, rem[1]))} là số thực tế: tác động nếu đã làm từ ${FM.short(M, s0)})` : '';
+      const lbR = FM.rangeLabel(M, rem), pastTxt = past ? ` (đứng ở ${FM.short(M, s0)}: các tháng còn lại tính theo bình quân tháng lũy kế đến ${FM.short(M, s0)})` : '';
       // vận hành dây chuyền (lõi 19.9): tách phần đổi sản phẩm và hỏng máy ra khỏi chế biến vượt chuẩn để không tính hai lần
-      const OP = FM.ops && FM.ops.V(M) ? FM.ops : null, sv = t => OP ? OP.saveAt(M, t) : { gom_lo: 0, bd_lon: 0, gom_n: 0, brk_n: 0 };
-      levers.push({ id: 'hao_hut', ten: OP ? 'Đưa hao hụt và phần chế biến còn lại về định mức' : 'Đưa hao hụt và chế biến về định mức', co_so: `Phần hao hụt và chế biến vượt chuẩn ${lbR}${past}` + (OP ? ', trừ phần đổi sản phẩm và hỏng máy đã tính ở hai dòng riêng' : '') + '; mã hao hụt lớn ở trang 04',
-        nam: each(t => (T.cl_hao_hut[t] || 0) + (T.cl_che_bien[t] || 0) - sv(t).gom_lo - sv(t).bd_lon), ai: 'Giám đốc nhà máy (COO)', han: han1, go: 'gia-von' });
+      const OP = FM.ops && FM.ops.V(M) ? FM.ops : null, svR = t => OP ? OP.saveAt(M, t) : { gom_lo: 0, bd_lon: 0, gom_n: 0, brk_n: 0 };
+      const svA = (() => { const o = { gom_lo: 0, bd_lon: 0, gom_n: 0, brk_n: 0 }; let n = 0; for (let t = ytdB[0]; t <= ytdB[1]; t++) { const x = svR(t); Object.keys(o).forEach(k => { o[k] += x[k] || 0; }); n++; } Object.keys(o).forEach(k => { o[k] = n ? o[k] / n : 0; }); return o; })();
+      const sv = t => past && t > s0 ? svA : svR(t);
+      levers.push({ id: 'hao_hut', ten: OP ? 'Đưa hao hụt và phần chế biến còn lại về định mức' : 'Đưa hao hụt và chế biến về định mức', co_so: `Phần hao hụt và chế biến vượt chuẩn ${lbR}${pastTxt}` + (OP ? ', trừ phần đổi sản phẩm và hỏng máy đã tính ở hai dòng riêng' : '') + '; mã hao hụt lớn ở trang 04',
+        nam: each(t => (Tm.cl_hao_hut[t] || 0) + (Tm.cl_che_bien[t] || 0) - sv(t).gom_lo - sv(t).bd_lon), ai: 'Giám đốc nhà máy (COO)', han: han1, go: 'gia-von' });
       if (OP) {
         let gN = 0, bN = 0; for (let t = rem[0]; t <= rem[1]; t++) { gN += sv(t).gom_n; bN += sv(t).brk_n; }
         const od = OP.overdue(M, s0);
@@ -806,7 +816,7 @@ window.FM = (function () {
           nam: each(t => sv(t).bd_lon), ct: { so_lan_hong_may_bot: bN, day_chuyen_no_bao_duong: od.map(x => x.l.code) }, ai: 'Trưởng bảo trì (COO duyệt lịch dừng máy)', han: han1, go: 'gia-von' });
       }
       const r2 = s0 + 2 <= yrR[1] ? [Math.max(yrR[0], s0 + 2), yrR[1]] : null;
-      let p2 = 0; if (r2) for (let t = r2[0]; t <= r2[1]; t++) p2 += Math.max(0, T.cl_gia_nvl[t] || 0);
+      let p2 = 0; if (r2) for (let t = r2[0]; t <= r2[1]; t++) p2 += Math.max(0, Tm.cl_gia_nvl[t] || 0);
       levers.push({ id: 'gia_ban', ten: 'Tăng giá bán bù phần giá NVL vượt chuẩn', co_so: r2 ? `Báo giá trước 1 tháng, áp dụng từ ${som(M, r2[0])}; bù phần giá đường, PET vượt chuẩn ${FM.rangeLabel(M, r2)}` : 'Không còn tháng nào trong năm để áp giá mới',
         nam: p2, n: r2 ? r2[1] - r2[0] + 1 : 0, ct: { so_thang_ap_dung: r2 ? r2[1] - r2[0] + 1 : 0, ap_dung_tu: r2 ? som(M, r2[0]) : null }, ai: 'Giám đốc kinh doanh + Sourcing', han: han1, go: 'gia-ban-khach' });
       const over = []; let dfrV = 0;
@@ -817,15 +827,15 @@ window.FM = (function () {
       levers.push({ id: 'dfr', ten: 'Đưa chiết khấu & trade spend từng kênh về tỷ lệ kế hoạch', co_so: `DFR % GR của từng kênh về mức ngân sách; vượt nhiều nhất: ${over.slice(0, 3).map(o => `${o.k} ${fx.money(o.v)}`).join(', ') || 'không kênh nào'} (trang 03, chương DFR)`,
         nam: dfrV, ai: 'Trade marketing + Giám đốc kênh', han: han1, go: 'pl-kenh-vung' });
       levers.push({ id: 'chi_phi', ten: 'Giữ S&D cố định và chi phí chung trong ngân sách', co_so: 'Phần vượt ngân sách theo tháng của S&D cố định và chi phí chung',
-        nam: each(t => Math.max(0, (T.sd_dinh[t] || 0) - (nsAt('sd_dinh', t) || 0)) + Math.max(0, (T.chi_phi_chung[t] || 0) - (nsAt('chi_phi_chung', t) || 0))), ai: 'Giám đốc tài chính (CFO)', han: han1, go: 'gia-von' });
-      const dmeCo = FM.div(sum(T.dme, ytdC), sum(T.nsr, ytdC)) || 0;
+        nam: each(t => Math.max(0, (Tm.sd_dinh[t] || 0) - (nsAt('sd_dinh', t) || 0)) + Math.max(0, (Tm.chi_phi_chung[t] || 0) - (nsAt('chi_phi_chung', t) || 0))), ai: 'Giám đốc tài chính (CFO)', han: han1, go: 'gia-von' });
+      const dmeCo = FM.div(sum(Tm.dme, ytdC), sum(Tm.nsr, ytdC)) || 0;
       const loss = M.kenhBan.filter(k => K[k.ma] && sum(K[k.ma].pade_chuan, ytdC) < 0);
       if (loss.length) levers.push({ id: 'dme_lo', ten: `Đưa DME kênh lỗ (${loss.map(k => k.slide || k.ma).join(', ')}) về bình quân công ty`, co_so: `Kênh có PADE âm lũy kế; DME % NSR về ${fx.pct(dmeCo)} như bình quân công ty`,
         nam: loss.reduce((a, k) => { let x = 0; for (let t = rem[0]; t <= rem[1]; t++) x += Math.max(0, (K[k.ma].dme[t] || 0) - (K[k.ma].nsr[t] || 0) * dmeCo); return a + x; }, 0), ai: 'Giám đốc kênh hiện đại', han: han1, go: 'pl-kenh-vung' });
       // bán thêm trong công suất: tối đa +5% sản lượng nhóm, không vượt 95% công suất; lãi theo biên đóng góp bình quân/UC
-      const cpu = FM.div(sum(T.gp_chuan, ytdC) - sum(T.dme, ytdC) - sum(T.sd_bien, ytdC), sum(T.volume, ytdC)) || 0;
+      const cpu = FM.div(sum(Tm.gp_chuan, ytdC) - sum(Tm.dme, ytdC) - sum(Tm.sd_bien, ytdC), sum(Tm.volume, ytdC)) || 0;
       const room = []; let uc = 0;
-      M.nhom.forEach(g => { const c = M.cs[g] || {}; let x = 0; for (let t = rem[0]; t <= rem[1]; t++) x += Math.min(0.05 * ((c.uc || [])[t] || 0), Math.max(0, 0.95 * ((c.cong_suat || [])[t] || 0) - ((c.uc || [])[t] || 0))); if (x > 0) room.push({ g, x }); uc += x; });
+      M.nhom.forEach(g => { const c = maskO(M.cs[g]) || {}; let x = 0; for (let t = rem[0]; t <= rem[1]; t++) x += Math.min(0.05 * ((c.uc || [])[t] || 0), Math.max(0, 0.95 * ((c.cong_suat || [])[t] || 0) - ((c.uc || [])[t] || 0))); if (x > 0) room.push({ g, x }); uc += x; });
       if (uc > 0) levers.push({ id: 'ban_them', ten: 'Bán thêm nhóm hàng còn công suất', co_so: `Tối đa +5% sản lượng mỗi nhóm, không vượt 95% công suất: ${room.map(r => `${r.g.toLowerCase()} ${fx.kUC(r.x)} nghìn UC`).join(', ')}; lãi ${fx.NF0.format(cpu)} đ/UC (biên đóng góp bình quân sau DME, S&D biến đổi)`,
         nam: uc * cpu, ct: { luong_uc: room.reduce((a, r) => a + Math.round(r.x / 1000) * 1000, 0) } /* tổng các số nghìn UC từng nhóm như dashboard hiển thị */, ai: 'Giám đốc kinh doanh', han: han1, go: 'gia-von' });
     }
@@ -833,7 +843,7 @@ window.FM = (function () {
     const lap = levers.reduce((a, l) => a + l.eff, 0);
     const chua = gap != null ? Math.max(0, gap - lap) : null;
     // 12 tháng gần nhất đến mốc và năm sau
-    const r12 = [Math.max(0, s0 - 11), s0], last12 = sum(T.ebt, r12), q = levers.reduce((a, l) => a + l.quy_nam, 0);
+    const r12 = [Math.max(0, s0 - 11), s0], last12 = sum(Tm.ebt, r12), q = levers.reduce((a, l) => a + l.quy_nam, 0);
     const next = { r12, last12, sau: last12 + q, quy: q, target: planEBT, nam: yr + 1 };
 
     // tiền 13 tuần đứng ở tháng mốc
@@ -851,18 +861,18 @@ window.FM = (function () {
     const RR = { gia_nvl: 0.1, san_luong: 0.05, tra_cham_ngay: 15 }; // tham số rủi ro, đưa vào tham_so của từng rủi ro để gói số lấy đúng số đang dùng
     const nx = [asof + 1, Math.min(M.N - 1, asof + 3)], risks = [];
     if (nx[0] <= nx[1]) {
-      const hap = t => M.nhom.reduce((a, g) => a + (((F.chenh_lech || {})[g] || {}).hap_thu || [])[t] || 0, 0);
-      let nvl = 0; for (let t = nx[0]; t <= nx[1]; t++) nvl += (T.cogs_chuan[t] || 0) - hap(t);
+      const hap = t => M.nhom.reduce((a, g) => a + (maskA(((F.chenh_lech || {})[g] || {}).hap_thu || []))[t] || 0, 0);
+      let nvl = 0; for (let t = nx[0]; t <= nx[1]; t++) nvl += (Tm.cogs_chuan[t] || 0) - hap(t);
       risks.push({ ten: `Giá đường, PET tăng thêm ${Math.round(RR.gia_nvl * 100)}%`, tac: -RR.gia_nvl * nvl, tham_so: { muc_tang_gia: RR.gia_nvl }, loai: 'Lợi nhuận', co_so: `${Math.round(RR.gia_nvl * 100)}% × NVL theo giá chuẩn ${FM.rangeLabel(M, nx)} (${fx.money(nvl)}, ước tính = giá vốn chuẩn − chế biến hấp thụ)`, ai: 'Sourcing' });
       const r12 = [Math.max(0, asof - 11), asof], CK = (F.cong_no || {}).khach || {};
       const inv = Object.entries(CK).map(([k, v]) => ({ k, kh: M.khach[k] || {}, v: sum(v.hoa_don, r12) })).filter(d => d.kh.kenh).sort((a, b) => b.v - a.v);
       const top = inv[0];
       if (top) {
-        const chInv = d3.sum(inv.filter(d => d.kh.kenh === top.kh.kenh), d => d.v), K = (F.theo_kenh || {})[top.kh.kenh] || {};
+        const chInv = d3.sum(inv.filter(d => d.kh.kenh === top.kh.kenh), d => d.v), K = Km[top.kh.kenh] || {};
         const lost = FM.div(top.v, chInv) * sum(K.pade_chuan, nx);
         risks.push({ ten: `Mất khách lớn nhất: ${top.kh.ten}`, tac: -Math.max(0, lost || 0), loai: 'Lợi nhuận', co_so: `${fx.pct(FM.div(top.v, chInv), 0)} hoá đơn 12 tháng của kênh ${top.kh.kenh.replace('_', ' ')} × PADE chuẩn kênh ${FM.rangeLabel(M, nx)}; chưa tính phần định phí không cắt được`, ai: 'Giám đốc kinh doanh' });
       }
-      let ctb = 0; for (let t = nx[0]; t <= nx[1]; t++) ctb += (T.gp_chuan[t] || 0) - (T.dme[t] || 0) - (T.sd_bien[t] || 0);
+      let ctb = 0; for (let t = nx[0]; t <= nx[1]; t++) ctb += (Tm.gp_chuan[t] || 0) - (Tm.dme[t] || 0) - (Tm.sd_bien[t] || 0);
       risks.push({ ten: `Sản lượng thấp hơn dự báo ${Math.round(RR.san_luong * 100)}%`, tac: -RR.san_luong * ctb, tham_so: { muc_giam_san_luong: RR.san_luong }, loai: 'Lợi nhuận', co_so: `${Math.round(RR.san_luong * 100)}% × lãi gộp chuẩn trừ DME, S&D biến đổi ${FM.rangeLabel(M, nx)}; định phí nhà máy chưa hấp thụ sẽ làm mất thêm`, ai: 'Giám đốc kinh doanh' });
       const r3 = [Math.max(0, asof - 2), asof]; let hd = 0; Object.values(CK).forEach(v => { hd += sum(v.hoa_don, r3); });
       risks.push({ ten: `Khách trả chậm thêm ${RR.tra_cham_ngay} ngày`, tac: -hd / ((r3[1] - r3[0] + 1) * 30) * RR.tra_cham_ngay, tham_so: { so_ngay_tra_cham: RR.tra_cham_ngay }, loai: 'Tiền', co_so: `Hoá đơn bình quân ngày 3 tháng gần nhất × ${RR.tra_cham_ngay} ngày; tiền bị giữ thêm, không phải lỗ`, ai: 'Kế toán công nợ' });
@@ -2019,15 +2029,16 @@ function tGiaVon(){
 
 // ===== 05 DỰ BÁO & HÀNH ĐỘNG =====
 function tDuBao(){
+  const CN = FMCau.caNam(M, FM, plan(), G.e), fyW = CN.live ? 'dự báo' : 'ước tính'; // cả năm cùng hàm với tab Điều hành (đặc tả es-sua-sau-review-18-11 mục 4)
   T = V.T; const R2 = plan(), yr = FM.year(M, R2.yr), E = FMP.editActs || {};
-  const gap = R2.gap || 0, on = R2.levers.filter(l => l.eff > 0);
-  V.hero('hDb', { k:'Cả năm ' + R2.yr + ' · đứng ở ' + lbl(G.e) + ' · ' + (Math.min(G.e, yr[1]) - yr[0] + 1) + ' tháng thực tế + dự báo', h:'LN trước thuế ' + R2.yr + ' dự báo đạt ' + money(R2.fcEBT) + ', hoàn thành ' + nf0.format(div(R2.fcEBT, R2.planEBT)*100) + '% kế hoạch; ' + (R2.chua > 0 ? '<span class="neg">' + money(R2.chua) + '</span> chưa có giải pháp' : 'hành động đề xuất đủ bù đắp mức thiếu hụt <span class="pos">' + money(gap) + '</span>'),
-    p:on.length + ' hành động đề xuất đang chọn dự kiến đóng góp ' + money(R2.lap) + ' trong năm, tương đương ' + money(sum(R2.levers.map(l => l.quy_nam))) + ' khi quy năm. EBITDA dự báo ' + money(R2.fcEBITDA) + ' so với kế hoạch ' + money(R2.planEBITDA) + '. Bỏ chọn một hành động để xem mức thiếu hụt thay đổi.',
+  const gap = CN.gap || 0, on = R2.levers.filter(l => l.eff > 0);
+  V.hero('hDb', { k:'Cả năm ' + R2.yr + ' · đứng ở ' + lbl(G.e) + ' · ' + (Math.min(G.e, yr[1]) - yr[0] + 1) + ' tháng thực tế + ' + (CN.live ? 'dự báo' : 'kế hoạch'), h:'LN trước thuế ' + R2.yr + ' ' + fyW + ' đạt ' + money(CN.fcEBT) + ', hoàn thành ' + nf0.format(div(CN.fcEBT, CN.planEBT)*100) + '% kế hoạch; ' + (CN.chua > 0 ? '<span class="neg">' + money(CN.chua) + '</span> chưa có giải pháp' : (gap > 0 ? 'hành động đề xuất đủ bù đắp mức thiếu hụt <span class="pos">' + money(gap) + '</span>' : 'đã vượt kế hoạch <span class="pos">' + money(-gap) + '</span> trước hành động đề xuất')),
+    p:on.length + ' hành động đề xuất đang chọn dự kiến đóng góp ' + money(R2.lap) + ' trong năm, tương đương ' + money(sum(R2.levers.map(l => l.quy_nam))) + ' khi quy năm. EBITDA ' + fyW + ' ' + money(CN.fcEBITDA) + ' so với kế hoạch ' + money(CN.planEBITDA) + '. Bỏ chọn một hành động để xem mức thiếu hụt thay đổi.',
     stats:[ [money(gap), 'LNTT thấp hơn kế hoạch'], [money(R2.lap), 'hành động đề xuất'], [R2.cash ? money(R2.cash.low.thap_nhat) : '–', 'số dư tiền thấp nhất 13 tuần']  ], btns:[['Xem hành động','#dbLev'],['Xem phương án máy mới','#dbInv']],
-    ring:{ f:div(R2.fcEBT, R2.planEBT) || 0, mark: Math.min(1, div(R2.fcEBT + R2.lap, R2.planEBT) || 0), n:nf0.format(div(R2.fcEBT, R2.planEBT)*100) + '%', t:['dự báo / KH', 'chấm nâu: sau hành động'] } });
+    ring:{ f:div(CN.fcEBT, CN.planEBT) || 0, mark: Math.min(1, div(CN.fcEBT + R2.lap, CN.planEBT) || 0), n:nf0.format(div(CN.fcEBT, CN.planEBT)*100) + '%', t:[fyW + ' / KH', 'chấm nâu: sau hành động'] } });
   const SN = { hao_hut:'Hao hụt về định mức', gom_lo:'Gom lô', bd_lon:'Bảo dưỡng lớn', gia_ban:'Tăng giá bán', dfr:'Trade spend về KH', chi_phi:'Chi phí về NS', dme_lo:'DME kênh lỗ', ban_them:'Bán thêm' };
-  V.waterfall('cDbW', [{ n:'Dự báo ' + R2.yr, v:R2.fcEBT, total:1 }].concat(R2.levers.filter(l => l.eff > 1e6).map(l => ({ n:SN[l.id] || l.ten.slice(0, 26), v:l.eff, note:l.ten + ' · ' + l.ai }))).concat(R2.chua > 0 ? [{ n:'Chưa có giải pháp', v:R2.chua, bad:1, note:'kế hoạch trừ dự báo và hành động' }] : R2.fcEBT + R2.lap > R2.planEBT + 1e6 ? [{ n:'Sau hành động', v:R2.fcEBT + R2.lap, total:1, note:'dự báo cộng hành động đề xuất' }] : []).concat([{ n:'Kế hoạch ' + R2.yr, v:R2.planEBT, total:1 }]), { lw:72 });
-  document.getElementById('dbWT').textContent = 'LNTT ' + R2.yr + ': dự báo ' + money(R2.fcEBT) + ' + hành động ' + money(R2.lap) + (R2.chua > 0 ? ' + chưa có giải pháp ' + money(R2.chua) + ' = kế hoạch ' + money(R2.planEBT) : R2.fcEBT + R2.lap > R2.planEBT ? ' = ' + money(R2.fcEBT + R2.lap) + ', vượt kế hoạch ' + money(R2.planEBT) + ' là ' + money(R2.fcEBT + R2.lap - R2.planEBT) : ' = kế hoạch ' + money(R2.planEBT));
+  V.waterfall('cDbW', [{ n:(CN.live ? 'Dự báo ' : 'Ước tính ') + R2.yr, v:CN.fcEBT, total:1 }].concat(R2.levers.filter(l => l.eff > 1e6).map(l => ({ n:SN[l.id] || l.ten.slice(0, 26), v:l.eff, note:l.ten + ' · ' + l.ai }))).concat(CN.chua > 0 ? [{ n:'Chưa có giải pháp', v:CN.chua, bad:1, note:'kế hoạch trừ dự báo và hành động' }] : CN.fcEBT + R2.lap > CN.planEBT + 1e6 ? [{ n:'Sau hành động', v:CN.fcEBT + R2.lap, total:1, note:'dự báo cộng hành động đề xuất' }] : []).concat([{ n:'Kế hoạch ' + R2.yr, v:CN.planEBT, total:1 }]), { lw:72 });
+  document.getElementById('dbWT').textContent = 'LNTT ' + R2.yr + ': ' + fyW + ' ' + money(CN.fcEBT) + ' + hành động ' + money(R2.lap) + (CN.chua > 0 ? ' + chưa có giải pháp ' + money(CN.chua) + ' = kế hoạch ' + money(CN.planEBT) : CN.fcEBT + R2.lap > CN.planEBT ? ' = ' + money(CN.fcEBT + R2.lap) + ', vượt kế hoạch ' + money(CN.planEBT) + ' là ' + money(CN.fcEBT + R2.lap - CN.planEBT) : ' = kế hoạch ' + money(CN.planEBT));
   // lũy kế LNTT
   const Y = rng(yr[0], yr[1]); let a = 0, b = 0; const ca = Y.map(t => (a += M.tong.ebt[t] || 0)), cp = Y.map(t => (b += (M.nst.ebt || [])[t] || 0));
   V.chart('cDbM').setOption({ ...V.anim(), textStyle:V.txt(), grid:V.grid({ top:34 }), legend:V.legend(), tooltip:V.tip({ trigger:'axis', formatter: ps => '<b>' + lbl(Y[ps[0].dataIndex]) + (isFc(Y[ps[0].dataIndex]) ? ' · dự báo' : '') + '</b><br>' + ps.map(q => q.marker + q.seriesName + ': ' + money(q.value)).join('<br>') }),
