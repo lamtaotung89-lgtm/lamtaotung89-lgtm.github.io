@@ -1758,6 +1758,108 @@ window.V5Lev = (function(){
     btn.onclick = tg; chart.off('click'); chart.on('click', p => { if (p.seriesIndex === si) tg(); }); show(); }
   return { render, sort, cat, bind };
 })();
+
+;
+// Trạng thái dư nợ vay ngắn hạn so với ngưỡng rủi ro, dùng chung cho dashboard v5 ba bộ, gói số và Executive summary (đặc tả
+// docs/dac-ta/sua-so-lieu-mo-t9-2026.md, việc C). Mức cảnh báo theo max(dư nợ cuối tháng, dư nợ cao nhất trong tháng):
+// cuối tháng dưới ngưỡng nhưng cao nhất trong tháng vượt thì vẫn là "đã vượt ngưỡng trong tháng", không gọi là "sát ngưỡng".
+(function (g) {
+'use strict';
+const ok = v => typeof v === 'number' && isFinite(v);
+const SAT = 0.85; // từ 85% ngưỡng trở lên là sát ngưỡng (giữ như dashboard trước đây)
+
+// muc: 'vuot' (cuối tháng vượt) | 'vuot_trong_thang' (cuối tháng dưới ngưỡng, cao nhất trong tháng vượt) | 'sat' | 'an_toan'
+function trangThai(cuoi, caoNhat, nguong) {
+  if (!ok(cuoi) || !ok(nguong) || nguong <= 0) return null;
+  const cao = ok(caoNhat) ? Math.max(cuoi, caoNhat) : cuoi;
+  const muc = cuoi > nguong ? 'vuot' : cao > nguong ? 'vuot_trong_thang' : cao > nguong * SAT ? 'sat' : 'an_toan';
+  return { muc, lv: muc === 'sat' ? 'amber' : muc === 'an_toan' ? null : 'red', cuoi, cao, nguong, con_cach: nguong - cuoi };
+}
+
+// cảnh báo { lv, t, s } cho danh sách "Vấn đề cần Ban TGĐ xem xét"; null khi an toàn
+function canhBao(cuoi, caoNhat, nguong, money, nhan) {
+  const x = trangThai(cuoi, caoNhat, nguong); if (!x || !x.lv) return null;
+  const n = nhan || 'Dư nợ vay';
+  if (x.muc === 'vuot') return { lv: x.lv, t: n + ' ' + money(cuoi) + ' vượt ngưỡng rủi ro ' + money(nguong), s: 'cao nhất trong tháng ' + money(x.cao) };
+  if (x.muc === 'vuot_trong_thang') return { lv: x.lv, t: n + ' đã vượt ngưỡng rủi ro ' + money(nguong) + ' trong tháng (cao nhất ' + money(x.cao) + ')', s: 'cuối tháng ' + money(cuoi) };
+  return { lv: x.lv, t: n + ' ' + money(cuoi) + ' sát ngưỡng rủi ro ' + money(nguong), s: 'cao nhất trong tháng ' + money(x.cao) };
+}
+
+// mệnh đề trạng thái cho câu "Dư nợ vay ..." (tab Tiền)
+function cau(cuoi, caoNhat, nguong, money) {
+  const x = trangThai(cuoi, caoNhat, nguong); if (!x) return '';
+  if (x.muc === 'vuot') return 'vượt ngưỡng rủi ro ' + money(nguong) + ' (cuối tháng ' + money(cuoi) + ')';
+  if (x.muc === 'vuot_trong_thang') return 'đã vượt ngưỡng rủi ro ' + money(nguong) + ' trong tháng (cao nhất ' + money(x.cao) + '), cuối tháng ' + money(cuoi);
+  return 'chỉ cách ngưỡng rủi ro ' + money(nguong) + ' là ' + money(nguong - cuoi);
+}
+
+// nhãn ngắn cho ô chỉ số
+function nhan(cuoi, caoNhat, nguong, money) {
+  const x = trangThai(cuoi, caoNhat, nguong); if (!x) return '';
+  return x.muc === 'vuot' ? 'vượt ngưỡng' : x.muc === 'vuot_trong_thang' ? 'vượt ngưỡng trong tháng (cao nhất ' + money(x.cao) + ')' : 'còn cách ' + money(nguong - cuoi);
+}
+
+// ===== Kỳ chọn (đặc tả docs/dac-ta/du-no-vuot-nguong-trong-ky.md, Tao chốt 18/11/2026) =====
+// cuoiA, caoA: dư nợ cuối tháng và cao nhất trong tháng theo chỉ số tháng; r = [đầu, cuối] chỉ gồm tháng thực tế (e = r[1] là tháng chọn).
+// muc: 'vuot' (tháng chọn vượt, cuối hoặc cao nhất; mục 1, đỏ) | 'da_vuot_trong_ky' (tháng chọn không vượt nhưng tháng trước trong kỳ đã vượt;
+// mục 2, vàng) | 'sat' | 'an_toan' (mục 3, như trangThai). thang_vuot: mọi tháng trong kỳ có cao nhất (hoặc cuối) vượt ngưỡng.
+function ky(cuoiA, caoA, r, nguong) {
+  const e = r[1], s = Math.max(0, Math.min(r[0], e));
+  const tt = trangThai((cuoiA || [])[e], (caoA || [])[e], nguong); if (!tt) return null;
+  const thang_vuot = [];
+  for (let t = s; t <= e; t++) {
+    const c = (cuoiA || [])[t], h = (caoA || [])[t]; if (!ok(c)) continue;
+    const cao = ok(h) ? Math.max(c, h) : c; if (cao > nguong) thang_vuot.push({ t, cao, cuoi: c });
+  }
+  const truoc = thang_vuot.filter(x => x.t < e), vuotE = tt.muc === 'vuot' || tt.muc === 'vuot_trong_thang';
+  const muc = vuotE ? 'vuot' : truoc.length ? 'da_vuot_trong_ky' : tt.muc;
+  const lv = muc === 'vuot' ? 'red' : muc === 'da_vuot_trong_ky' ? 'amber' : tt.lv;
+  return { muc, lv, e, thang_vuot, truoc, tt, cuoi: tt.cuoi, cao: tt.cao, nguong, con_cach: nguong - tt.cuoi };
+}
+const joinVi = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' và ' + a[a.length - 1];
+
+// cảnh báo { lv, t, s } cho tab Điều hành; mục 3 giữ như canhBao (sát ngưỡng vàng, an toàn không cảnh báo)
+function canhBaoKy(x, money, ten, nhanCu) {
+  if (!x) return null;
+  if (x.muc === 'vuot') return { lv: 'red', t: 'Dư nợ vay đã vượt ngưỡng an toàn, cần cân đối lại dòng tiền', s: 'cao nhất trong ' + ten(x.e) + ' ' + money(x.cao) + ', cuối tháng ' + money(x.cuoi) + ', ngưỡng ' + money(x.nguong) };
+  if (x.muc === 'da_vuot_trong_ky') return { lv: 'amber', t: 'Dư nợ vay đã vượt ngưỡng ' + money(x.nguong) + ' trong ' + joinVi(x.truoc.map(v => ten(v.t))) + ' (cao nhất ' + joinVi(x.truoc.map(v => money(v.cao))) + ')',
+    s: ten(x.e) + ' đã giảm về ' + money(x.cuoi) + ', ' + (x.tt.muc === 'sat' ? 'sát ngưỡng, ' : '') + 'còn cách ' + money(x.con_cach) };
+  return canhBao(x.cuoi, x.cao, x.nguong, money, nhanCu);
+}
+
+// câu đầy đủ về dư nợ (không có dấu chấm cuối) cho câu mở tab Tiền và Executive summary
+function cauKy(x, money, ten) {
+  if (!x) return '';
+  if (x.muc === 'vuot') return 'Dư nợ vay đã vượt ngưỡng an toàn ' + money(x.nguong) + ' (cao nhất trong ' + ten(x.e) + ' ' + money(x.cao) + ', cuối tháng ' + money(x.cuoi) + '), cần cân đối lại dòng tiền';
+  if (x.muc === 'da_vuot_trong_ky') { const T = joinVi(x.truoc.map(v => ten(v.t))); return T.charAt(0).toUpperCase() + T.slice(1) + ', dư nợ cao nhất đã vượt ngưỡng ' + money(x.nguong) + ' (' + joinVi(x.truoc.map(v => money(v.cao))) + '); ' +
+    ten(x.e) + ' đã giảm về ' + money(x.cuoi) + ', dưới ngưỡng' + (x.tt.muc === 'sat' ? ' nhưng chỉ cách ' : ', còn cách ') + money(x.con_cach); }
+  return 'Dư nợ vay ' + cau(x.cuoi, x.cao, x.nguong, money);
+}
+
+// nhãn ngắn cho ô chỉ số
+function nhanKy(x, money, ten) {
+  if (!x) return '';
+  if (x.muc === 'vuot') return x.tt.muc === 'vuot' ? 'vượt ngưỡng' : 'vượt ngưỡng trong tháng (cao nhất ' + money(x.cao) + ')';
+  if (x.muc === 'da_vuot_trong_ky') return 'đã vượt ở ' + joinVi(x.truoc.map(v => ten(v.t))) + '; còn cách ' + money(x.con_cach);
+  return nhan(x.cuoi, x.cao, x.nguong, money);
+}
+
+// dư nợ cao nhất trong tháng từ chuỗi tuần [{ t, v }] (bộ sản xuất), chỉ lấy tháng đến hết tháng thực tế den
+function caoTuTuan(weeks, den) {
+  const o = []; (weeks || []).forEach(w => { if (w.t <= den && ok(w.v)) o[w.t] = o[w.t] == null ? w.v : Math.max(o[w.t], w.v); }); return o;
+}
+
+// khối "vay" của gói số: các tháng trong kỳ có dư nợ vượt ngưỡng, mã t<tháng>_<năm>; mOf(t) 1..12, yOf(t) năm
+function khoiGoiSo(x, mOf, yOf) {
+  if (!x) return null;
+  const thang_vuot_nguong = {};
+  x.thang_vuot.forEach(v => { thang_vuot_nguong['t' + mOf(v.t) + '_' + yOf(v.t)] = { thang: 'T' + mOf(v.t) + '/' + yOf(v.t), cao: v.cao, cuoi: v.cuoi }; });
+  return { nguong: x.nguong, muc: x.muc, thang_chon: 'T' + mOf(x.e) + '/' + yOf(x.e), cuoi_thang_chon: x.cuoi, cao_thang_chon: x.cao, con_cach: x.con_cach, thang_vuot_nguong };
+}
+
+const api = { trangThai, canhBao, cau, nhan, SAT, ky, canhBaoKy, cauKy, nhanKy, caoTuTuan, khoiGoiSo };
+if (typeof module !== 'undefined' && module.exports) module.exports = api; else g.V5DuNo = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
 </script>
 <script>(function(){
 'use strict';
@@ -1866,6 +1968,9 @@ const serM = k => rng(0, ASOF).map(t => m.M[k][t]);
 
 // ===== kỳ chung =====
 function per(){ const P = m.period({ pm:G.pm, e:G.e, b0:G.b0 }); const b = m.baseOf(P, G.cmp); return { P, b, X:m.pnl(P.cur) }; }
+// dư nợ vượt ngưỡng trong kỳ chọn, chỉ tháng thực tế; cao nhất trong tháng lấy từ dư nợ theo tuần (đặc tả du-no-vuot-nguong-trong-ky)
+const duNoKy = (P, d) => { const ts = P.cur.filter(t => t <= ASOF); if (!ts.length || d.nguong == null) return null; return V5DuNo.ky(m.DEBT, V5DuNo.caoTuTuan(d.weeks, ASOF), [Math.min(...ts), Math.max(...ts)], d.nguong); };
+const duNoVuot = DK => DK && (DK.muc === 'vuot' || DK.muc === 'da_vuot_trong_ky');
 const nmStep = s => String(s).replace(/^CK\b/, 'Chiết khấu').replace(/\bNVL\b/g, 'nguyên vật liệu');
 const vsName = b => b ? (b.kind === 'plan' ? 'kế hoạch' : b.name) : '';
 const vsShort = b => b ? (b.kind === 'plan' ? 'so KH' : 'so ' + b.name.replace('cùng kỳ ','')) : '';
@@ -1883,8 +1988,10 @@ function tabDieuHanh(){
     ring: rate != null ? { f:rate, n:nf0.format(rate*100) + '%', t:['EBITDA đạt', vsName(b)], aria:'EBITDA đạt ' + nf0.format(rate*100) + '% ' + vsName(b) } : null });
   // cảnh báo
   const al = m.alerts(P, G.cmp).filter((a,i,arr) => !(a.k === 'kpi' && a.id === 'cs' && arr.findIndex(x => x.k === 'kpi' && x.id === 'cs') !== i));
+  const DK = duNoKy(P, d); if (duNoVuot(DK)) al.unshift({ k:'du_no_ky', lv:DK.lv, cb:V5DuNo.canhBaoKy(DK, money, m.E.mLabel) });
   const KD = Object.fromEntries(m.KPIDEF.map(k => [k.k, k]));
   const aTxt = a => {
+    if (a.k === 'du_no_ky') return [a.cb.t, a.cb.s, 'tien'];
     if (a.k === 'no') return ['Dư nợ vay vượt ngưỡng rủi ro ' + money(d.nguong) + ' từ tuần ' + fmtW(a.w.d), 'đỉnh ' + money(a.peak.v) + ' · hạn mức ' + money(d.hanMuc), 'tien'];
     if (a.k === 'eb_plan') return ['EBITDA ' + P.name + ' thấp hơn kế hoạch ' + money(a.p - a.v), money(a.v) + ' / ' + money(a.p), 'ebitda'];
     if (a.k === 'fy') return ['EBITDA cả năm ' + a.y + ' dự báo thấp hơn kế hoạch ' + money(a.p - a.v), 'dự báo ' + money(a.v) + ' / KH ' + money(a.p), 'du-bao'];
@@ -1901,7 +2008,7 @@ function tabDieuHanh(){
     { ...S('fix', money), l:'Định phí', ic:IC.gear, s:serM('fix'), go:'bien-dinh-phi' },
     { ...S('eb', money), l:'EBITDA quản trị', ic:IC.flame, s:serM('eb'), hot:true, go:'ebitda' },
     { ...S('lntt', money), l:'LN trước thuế', ic:IC.pct, s:serM('lntt'), go:'ebitda' },
-    { r:d.end, f:money, v:money(d.end), l:'Dư nợ vay', ic:IC.bank, d: d.end > d.nguong ? 'vượt ngưỡng' : 'còn cách ' + money(d.nguong - d.end), dv: d.nguong - d.end, sub:'ngưỡng ' + money(d.nguong), s:rng(0,ASOF).map(t => m.DEBT[t]), go:'tien' } ], P.cur[0]);
+    { r:d.end, f:money, v:money(d.end), l:'Dư nợ vay', ic:IC.bank, d: duNoVuot(DK) ? V5DuNo.nhanKy(DK, money, m.E.mLabel) : d.end > d.nguong ? 'vượt ngưỡng' : 'còn cách ' + money(d.nguong - d.end), dv: d.nguong - d.end, sub:'ngưỡng ' + money(d.nguong), s:rng(0,ASOF).map(t => m.DEBT[t]), go:'tien' } ], P.cur[0]);
   // đường băng cả năm
   const gap = y.pl.eb - y.fy.eb - lv.q, act = y.actX.eb, fc = y.fcX.eb;
   document.getElementById('dhRwT').textContent = 'EBITDA cả năm ' + y.y + ': ' + (y.live ? 'dự báo ' : 'ước tính ') + money(y.fy.eb) + ' so với kế hoạch ' + money(y.pl.eb) + (gap > 0 ? '; ' + money(gap) + ' chưa có giải pháp' : '; đạt kế hoạch nếu thực hiện đủ các hành động đề xuất');
@@ -2079,11 +2186,11 @@ function tabBienDinh(){
 // ===== TAB 05 · TIỀN & CÔNG NỢ =====
 let ARK = null;
 function tabTien(){
-  const { P } = per(); const ca = m.cash(P), d = m.debt(P), ar = m.receivables(P), act = m.cashActions(P);
+  const { P } = per(); const ca = m.cash(P), d = m.debt(P), ar = m.receivables(P), act = m.cashActions(P), DK = duNoKy(P, d);
   const lbl = m.FIN.lbl[P.e], fc = (m.FIN.du_bao_theo_ky || {})[lbl] || null;
   const low = fc ? fc.tuan.reduce((a, w) => w.thap_nhat < a.thap_nhat ? w : a, fc.tuan[0]) : null, vay13 = fc ? sum(fc.tuan.map(w => w.vay_them || 0)) : 0;
   hero('hTien', { k:'Tiền & nợ · ' + P.name + ' · đứng ở ' + m.E.mLabel(P.e), h:'Tiền từ hoạt động kinh doanh đạt ' + money(ca.op) + ', chỉ tương đương ' + nf0.format((ca.conv || 0)*100) + '% EBITDA; dư nợ vay ' + money(d.end),
-    p:'Phải thu tăng <span class="neg">' + money(ca.dAR) + '</span> do khách hàng key thanh toán chậm' + (ca.capex || ca.dv ? '; Công ty đồng thời chi ' + [ca.capex ? money(-ca.capex) + ' đầu tư máy móc' : '', ca.dv ? money(-ca.dv) + ' chi trả lợi nhuận' : ''].filter(Boolean).join(' và ') : '') + '. ' + (d.firstOver ? 'Dư nợ vay dự báo vượt ngưỡng ' + money(d.nguong) + ' từ tuần ' + fmtW(d.firstOver.d) + '.' : 'Dư nợ vay thấp hơn ngưỡng ' + money(d.nguong) + '.'),
+    p:'Phải thu tăng <span class="neg">' + money(ca.dAR) + '</span> do khách hàng key thanh toán chậm' + (ca.capex || ca.dv ? '; Công ty đồng thời chi ' + [ca.capex ? money(-ca.capex) + ' đầu tư máy móc' : '', ca.dv ? money(-ca.dv) + ' chi trả lợi nhuận' : ''].filter(Boolean).join(' và ') : '') + '. ' + (duNoVuot(DK) ? V5DuNo.cauKy(DK, money, m.E.mLabel) + '. ' : '') + (d.firstOver ? 'Dư nợ vay dự báo vượt ngưỡng ' + money(d.nguong) + ' từ tuần ' + fmtW(d.firstOver.d) + '.' : 'Dư nợ vay thấp hơn ngưỡng ' + money(d.nguong) + '.'),
     stats:[ [money(d.end), 'dư nợ vay · ngưỡng ' + money(d.nguong)], [nf0.format(ar.dso) + ' ngày', 'DSO (cùng kỳ ' + nf0.format(ar.dsoL || 0) + ')'], [low ? money(low.thap_nhat) : '–', 'tiền thấp nhất 13 tuần tới'] ], btns:[['Xem cầu tiền','#tCash'],['Xem phải thu theo khách','#tAr']],
     ring:{ f:Math.min(1, d.end / d.hanMuc), mark: d.nguong / d.hanMuc, n:nf0.format(d.end/d.hanMuc*100) + '%', t:['hạn mức đã dùng', 'chấm nâu: ngưỡng rủi ro'] } });
   kpiRow('tKpis', [ { l:'Tiền cuối kỳ', r:ca.close, f:money, v:money(ca.close), d:money(ca.close - ca.open, true), dv:ca.close - ca.open, sub:'so đầu kỳ', ic:IC.wallet, s:rng(0,ASOF).map(t => m.CASH[t]) },

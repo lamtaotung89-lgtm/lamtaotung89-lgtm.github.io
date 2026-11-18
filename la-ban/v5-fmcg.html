@@ -1337,7 +1337,7 @@ window.V5Lev = (function(){
 })();
 
 ;
-// Trạng thái dư nợ vay ngắn hạn so với ngưỡng rủi ro, dùng chung cho dashboard v5 FMCG và Nhà phân phối và gói số (đặc tả
+// Trạng thái dư nợ vay ngắn hạn so với ngưỡng rủi ro, dùng chung cho dashboard v5 ba bộ, gói số và Executive summary (đặc tả
 // docs/dac-ta/sua-so-lieu-mo-t9-2026.md, việc C). Mức cảnh báo theo max(dư nợ cuối tháng, dư nợ cao nhất trong tháng):
 // cuối tháng dưới ngưỡng nhưng cao nhất trong tháng vượt thì vẫn là "đã vượt ngưỡng trong tháng", không gọi là "sát ngưỡng".
 (function (g) {
@@ -1376,7 +1376,65 @@ function nhan(cuoi, caoNhat, nguong, money) {
   return x.muc === 'vuot' ? 'vượt ngưỡng' : x.muc === 'vuot_trong_thang' ? 'vượt ngưỡng trong tháng (cao nhất ' + money(x.cao) + ')' : 'còn cách ' + money(nguong - cuoi);
 }
 
-const api = { trangThai, canhBao, cau, nhan, SAT };
+// ===== Kỳ chọn (đặc tả docs/dac-ta/du-no-vuot-nguong-trong-ky.md, Tao chốt 18/11/2026) =====
+// cuoiA, caoA: dư nợ cuối tháng và cao nhất trong tháng theo chỉ số tháng; r = [đầu, cuối] chỉ gồm tháng thực tế (e = r[1] là tháng chọn).
+// muc: 'vuot' (tháng chọn vượt, cuối hoặc cao nhất; mục 1, đỏ) | 'da_vuot_trong_ky' (tháng chọn không vượt nhưng tháng trước trong kỳ đã vượt;
+// mục 2, vàng) | 'sat' | 'an_toan' (mục 3, như trangThai). thang_vuot: mọi tháng trong kỳ có cao nhất (hoặc cuối) vượt ngưỡng.
+function ky(cuoiA, caoA, r, nguong) {
+  const e = r[1], s = Math.max(0, Math.min(r[0], e));
+  const tt = trangThai((cuoiA || [])[e], (caoA || [])[e], nguong); if (!tt) return null;
+  const thang_vuot = [];
+  for (let t = s; t <= e; t++) {
+    const c = (cuoiA || [])[t], h = (caoA || [])[t]; if (!ok(c)) continue;
+    const cao = ok(h) ? Math.max(c, h) : c; if (cao > nguong) thang_vuot.push({ t, cao, cuoi: c });
+  }
+  const truoc = thang_vuot.filter(x => x.t < e), vuotE = tt.muc === 'vuot' || tt.muc === 'vuot_trong_thang';
+  const muc = vuotE ? 'vuot' : truoc.length ? 'da_vuot_trong_ky' : tt.muc;
+  const lv = muc === 'vuot' ? 'red' : muc === 'da_vuot_trong_ky' ? 'amber' : tt.lv;
+  return { muc, lv, e, thang_vuot, truoc, tt, cuoi: tt.cuoi, cao: tt.cao, nguong, con_cach: nguong - tt.cuoi };
+}
+const joinVi = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' và ' + a[a.length - 1];
+
+// cảnh báo { lv, t, s } cho tab Điều hành; mục 3 giữ như canhBao (sát ngưỡng vàng, an toàn không cảnh báo)
+function canhBaoKy(x, money, ten, nhanCu) {
+  if (!x) return null;
+  if (x.muc === 'vuot') return { lv: 'red', t: 'Dư nợ vay đã vượt ngưỡng an toàn, cần cân đối lại dòng tiền', s: 'cao nhất trong ' + ten(x.e) + ' ' + money(x.cao) + ', cuối tháng ' + money(x.cuoi) + ', ngưỡng ' + money(x.nguong) };
+  if (x.muc === 'da_vuot_trong_ky') return { lv: 'amber', t: 'Dư nợ vay đã vượt ngưỡng ' + money(x.nguong) + ' trong ' + joinVi(x.truoc.map(v => ten(v.t))) + ' (cao nhất ' + joinVi(x.truoc.map(v => money(v.cao))) + ')',
+    s: ten(x.e) + ' đã giảm về ' + money(x.cuoi) + ', ' + (x.tt.muc === 'sat' ? 'sát ngưỡng, ' : '') + 'còn cách ' + money(x.con_cach) };
+  return canhBao(x.cuoi, x.cao, x.nguong, money, nhanCu);
+}
+
+// câu đầy đủ về dư nợ (không có dấu chấm cuối) cho câu mở tab Tiền và Executive summary
+function cauKy(x, money, ten) {
+  if (!x) return '';
+  if (x.muc === 'vuot') return 'Dư nợ vay đã vượt ngưỡng an toàn ' + money(x.nguong) + ' (cao nhất trong ' + ten(x.e) + ' ' + money(x.cao) + ', cuối tháng ' + money(x.cuoi) + '), cần cân đối lại dòng tiền';
+  if (x.muc === 'da_vuot_trong_ky') { const T = joinVi(x.truoc.map(v => ten(v.t))); return T.charAt(0).toUpperCase() + T.slice(1) + ', dư nợ cao nhất đã vượt ngưỡng ' + money(x.nguong) + ' (' + joinVi(x.truoc.map(v => money(v.cao))) + '); ' +
+    ten(x.e) + ' đã giảm về ' + money(x.cuoi) + ', dưới ngưỡng' + (x.tt.muc === 'sat' ? ' nhưng chỉ cách ' : ', còn cách ') + money(x.con_cach); }
+  return 'Dư nợ vay ' + cau(x.cuoi, x.cao, x.nguong, money);
+}
+
+// nhãn ngắn cho ô chỉ số
+function nhanKy(x, money, ten) {
+  if (!x) return '';
+  if (x.muc === 'vuot') return x.tt.muc === 'vuot' ? 'vượt ngưỡng' : 'vượt ngưỡng trong tháng (cao nhất ' + money(x.cao) + ')';
+  if (x.muc === 'da_vuot_trong_ky') return 'đã vượt ở ' + joinVi(x.truoc.map(v => ten(v.t))) + '; còn cách ' + money(x.con_cach);
+  return nhan(x.cuoi, x.cao, x.nguong, money);
+}
+
+// dư nợ cao nhất trong tháng từ chuỗi tuần [{ t, v }] (bộ sản xuất), chỉ lấy tháng đến hết tháng thực tế den
+function caoTuTuan(weeks, den) {
+  const o = []; (weeks || []).forEach(w => { if (w.t <= den && ok(w.v)) o[w.t] = o[w.t] == null ? w.v : Math.max(o[w.t], w.v); }); return o;
+}
+
+// khối "vay" của gói số: các tháng trong kỳ có dư nợ vượt ngưỡng, mã t<tháng>_<năm>; mOf(t) 1..12, yOf(t) năm
+function khoiGoiSo(x, mOf, yOf) {
+  if (!x) return null;
+  const thang_vuot_nguong = {};
+  x.thang_vuot.forEach(v => { thang_vuot_nguong['t' + mOf(v.t) + '_' + yOf(v.t)] = { thang: 'T' + mOf(v.t) + '/' + yOf(v.t), cao: v.cao, cuoi: v.cuoi }; });
+  return { nguong: x.nguong, muc: x.muc, thang_chon: 'T' + mOf(x.e) + '/' + yOf(x.e), cuoi_thang_chon: x.cuoi, cao_thang_chon: x.cao, con_cach: x.con_cach, thang_vuot_nguong };
+}
+
+const api = { trangThai, canhBao, cau, nhan, SAT, ky, canhBaoKy, cauKy, nhanKy, caoTuTuan, khoiGoiSo };
 if (typeof module !== 'undefined' && module.exports) module.exports = api; else g.V5DuNo = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
@@ -1464,7 +1522,7 @@ function tDieuHanh(){
   if (ok(R2.gap) && R2.gap > 0) al.push({ lv: R2.chua > 0 ? 'red' : 'amber', t:'LNTT cả năm ' + R2.yr + ' dự báo thấp hơn kế hoạch ' + money(R2.gap), s:'hành động đề xuất dự kiến đóng góp ' + money(R2.lap) + (R2.chua > 0 ? ', còn ' + money(R2.chua) + ' chưa có giải pháp' : ', đủ bù đắp nếu thực hiện đầy đủ'), go:'du-bao' });
   KB.forEach(k => { const v = Sc(FM.cells(M, P(), { kenh:k.ma }), 'pade_chuan', c.r); if (v < 0) al.push({ lv:'red', t:'Kênh ' + esc(k.slide) + ' lỗ PADE ' + money(Math.abs(v)), s:esc(k.ten) + ' · ' + per.lbl, go:'kenh-vung' }); });
   VUNG.forEach(v => { const x = Sc(FM.cells(M, P(), { vung:v.ma }), 'pade_chuan', c.r); if (x < 0) al.push({ lv:'amber', t:'Vùng ' + esc(v.ten) + ' lỗ PADE ' + money(Math.abs(x)), s:per.lbl, go:'kenh-vung' }); });
-  { const cb = V5DuNo.canhBao(vay, (F.tien.vay_nh_cao_nhat || [])[c.e], ng, money, 'Dư nợ vay ngắn hạn'); if (cb) al.push(Object.assign(cb, { go:'tien' })); } // việc C
+  { const cb = V5DuNo.canhBaoKy(V5DuNo.ky(F.tien.vay_nh_cuoi, F.tien.vay_nh_cao_nhat, c.r, ng), money, lbl, 'Dư nợ vay ngắn hạn'); if (cb) al.push(Object.assign(cb, { go:'tien' })); } // dư nợ vượt ngưỡng trong kỳ chọn (đặc tả du-no-vuot-nguong-trong-ky)
   const cd = ((F.ton_kho || {}).can_date || [])[c.e] || 0; if (cd > 0) al.push({ lv:'amber', t:'Hàng cận date ' + money(cd) + ' cuối ' + lbl(c.e), s:'rủi ro tiêu hủy; xem tuổi tồn kho', go:'gia-von' });
   if (R2.cash && R2.cash.kh.length) al.push({ lv:'amber', t:R2.cash.kh.length + ' khách trả chậm hơn hạn thanh toán', s:'thu về đúng hạn được ' + money(sum(R2.cash.kh.map(k => k.giam))), go:'tien' });
   if (R2.inv) al.push({ lv:'amber', t:'Máy mới ' + esc(R2.inv.D.mo_ta || '') + ': ' + (R2.inv.verdict.lam === true ? 'nên đầu tư' : R2.inv.verdict.lam === 'dk' ? 'đầu tư có điều kiện' : 'chưa nên đầu tư'), s:'NPV ' + R2.inv.cases.map(x => x.id + ' ' + money(x.npv, true)).join(' · '), go:'du-bao' });
@@ -1779,15 +1837,15 @@ function tTien(){
   const open = r[0] ? TI.cuoi_thang[r[0] - 1] : TI.cuoi_thang[0] - Object.values(DT).reduce((a, x) => a + (x[0] || 0), 0), close = TI.cuoi_thang[e];
   const items = GROUPS.map(([n, ks]) => ({ n, v: sum(ks.map(k => sumR(DT[k], r))) })).filter(x => Math.abs(x.v) > 1e6);
   const resid = close - open - sum(items.map(x => x.v)); if (Math.abs(resid) > 1e6) items.push({ n:'Khác', v:resid });
-  const op = sum(GROUPS.slice(0, 6).map(([n, ks]) => sum(ks.map(k => sumR(DT[k], r))))), eb = sumR(M.tong.ebitda, r), vay = TI.vay_nh_cuoi[e], ng = TI.nguong_rui_ro;
+  const op = sum(GROUPS.slice(0, 6).map(([n, ks]) => sum(ks.map(k => sumR(DT[k], r))))), eb = sumR(M.tong.ebitda, r), vay = TI.vay_nh_cuoi[e], ng = TI.nguong_rui_ro, DK = V5DuNo.ky(TI.vay_nh_cuoi, TI.vay_nh_cao_nhat, r, ng);
   V.hero('hTien', { k:'Tiền & nợ · ' + per.lbl + ' · đứng ở ' + lbl(e) + ' · toàn công ty', h:'Tiền từ hoạt động kinh doanh đạt ' + money(op) + ', tương đương ' + nf0.format((div(op, eb) || 0)*100) + '% EBITDA; dư nợ vay ngắn hạn ' + money(vay),
-    p:'Cuối ' + lbl(e) + ', số dư tiền đạt ' + money(close) + ', tiền thuần ' + money(TI.tien_thuan[e]) + '. Phải thu ' + money(CN.phai_thu[e]) + ', trong đó quá hạn <span class="neg">' + money(CN.qua_han[e]) + '</span>. Dư nợ vay ' + V5DuNo.cau(vay, (TI.vay_nh_cao_nhat || [])[e], ng, money) + '.',
+    p:'Cuối ' + lbl(e) + ', số dư tiền đạt ' + money(close) + ', tiền thuần ' + money(TI.tien_thuan[e]) + '. Phải thu ' + money(CN.phai_thu[e]) + ', trong đó quá hạn <span class="neg">' + money(CN.qua_han[e]) + '</span>. ' + V5DuNo.cauKy(DK, money, lbl) + '.',
     stats:[ [money(vay), 'dư nợ vay · ngưỡng ' + money(ng)], [R2.cash ? money(R2.cash.low.thap_nhat) : '–', 'số dư tiền thấp nhất 13 tuần'] , [money(CN.qua_han[e]), 'phải thu quá hạn'] ], btns:[['Xem tiền đi đâu','#tCash'],['Xem phải thu theo khách','#tAr']],
     ring:{ f:Math.min(1, vay / ((F.du_bao_tien.theo_ky[String(e)] || {}).vay ? F.du_bao_tien.theo_ky[String(e)].vay.han_muc : ng*1.5)), mark: ng / ((F.du_bao_tien.theo_ky[String(e)] || {}).vay ? F.du_bao_tien.theo_ky[String(e)].vay.han_muc : ng*1.5), n:nf0.format(vay / ((F.du_bao_tien.theo_ky[String(e)] || {}).vay ? F.du_bao_tien.theo_ky[String(e)].vay.han_muc : ng*1.5) * 100) + '%', t:['hạn mức đã dùng', 'chấm nâu: ngưỡng rủi ro'] } });
   const ts = rng(0, TT), dso = t => { const k = Object.values(CN.khach); const hd = sum(k.map(x => (x.hoa_don || [])[t] + (x.hoa_don || [])[t-1] + (x.hoa_don || [])[t-2])); return t < 2 ? null : div(CN.phai_thu[t], hd) * 91; };
   V.kpiRow('tKpis', [ { l:'Tiền cuối kỳ', r:close, f:money, v:money(close), d:money(close - open, true), dv:close - open, sub:'so đầu kỳ', ic:IC.wallet, s:ts.map(t => TI.cuoi_thang[t]) },
     { l:'Tiền hoạt động', r:op, f:money, v:money(op), d:pct(div(op, eb)) + ' EBITDA', sub:'', ic:IC.coin },
-    { l:'Dư nợ vay ngắn hạn', r:vay, f:money, v:money(vay), d: V5DuNo.nhan(vay, (TI.vay_nh_cao_nhat || [])[e], ng, money), dv:ng - vay, sub:'ngưỡng ' + money(ng), hot:true, ic:IC.bank, s:ts.map(t => TI.vay_nh_cuoi[t]) },
+    { l:'Dư nợ vay ngắn hạn', r:vay, f:money, v:money(vay), d: V5DuNo.nhanKy(DK, money, lbl), dv:ng - vay, sub:'ngưỡng ' + money(ng), hot:true, ic:IC.bank, s:ts.map(t => TI.vay_nh_cuoi[t]) },
     { l:'Phải thu khách hàng', r:CN.phai_thu[e], f:money, v:money(CN.phai_thu[e]), d: e >= 12 ? money(CN.phai_thu[e] - CN.phai_thu[e-12], true) : '', dv: e >= 12 ? -(CN.phai_thu[e] - CN.phai_thu[e-12]) : null, sub:'so cùng kỳ', ic:IC.tag, s:ts.map(t => CN.phai_thu[t]) },
     { l:'Quá hạn', r:CN.qua_han[e], f:money, v:money(CN.qua_han[e]), d:pct(div(CN.qua_han[e], CN.phai_thu[e])) + ' phải thu', sub:'', ic:IC.alert, s:ts.map(t => CN.qua_han[t]) },
     { l:'Phải trả nhà cung cấp', r:CN.phai_tra[e], f:money, v:money(CN.phai_tra[e]), d:'cuối ' + lbl(e), sub:'', ic:IC.truck, s:ts.map(t => CN.phai_tra[t]) } ], per.a[0]);
